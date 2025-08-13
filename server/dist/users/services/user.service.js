@@ -18,26 +18,62 @@ let UsersService = class UsersService {
         this.prisma = prisma;
     }
     async findAll(user) {
-        if (user.role !== 'ADMIN') {
-            throw new common_1.ForbiddenException('Access denied');
-        }
         return this.prisma.user.findMany();
     }
-    async findOne(id, user) {
-        if (user.id !== id && user.role !== 'ADMIN') {
-            throw new common_1.ForbiddenException('Access denied');
-        }
-        const userData = await this.prisma.user.findUnique({ where: { id } });
-        if (!userData) {
-            throw new common_1.NotFoundException('User not found');
-        }
-        return userData;
-    }
     async update(id, dto, user) {
-        if (user.role !== 'ADMIN') {
-            throw new common_1.ForbiddenException('Access denied');
-        }
         return this.prisma.user.update({ where: { id }, data: dto });
+    }
+    async getProfile(userId) {
+        console.log(3);
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true,
+            },
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('Usuário não encontrado');
+        }
+        return user;
+    }
+    async getUserHistory(userId, page, limit) {
+        const skip = (page - 1) * limit;
+        const [results, totalDocs] = await Promise.all([
+            this.prisma.wordHistories.findMany({
+                where: { userId },
+                orderBy: { accessedAt: 'desc' },
+                skip,
+                take: limit,
+                select: {
+                    word: true,
+                    accessedAt: true,
+                },
+            }),
+            this.prisma.wordHistories.count({ where: { userId } }),
+        ]);
+        const totalPages = Math.ceil(totalDocs / limit);
+        return { results, totalDocs, totalPages };
+    }
+    async getUserFavorites(userId, page, limit) {
+        const skip = (page - 1) * limit;
+        const [results, totalDocs] = await Promise.all([
+            this.prisma.favorite.findMany({
+                where: { userId },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+                select: {
+                    word: true,
+                    createdAt: true,
+                },
+            }),
+            this.prisma.wordHistories.count({ where: { userId } }),
+        ]);
+        const totalPages = Math.ceil(totalDocs / limit);
+        return { results, totalDocs, totalPages };
     }
 };
 exports.UsersService = UsersService;

@@ -6,6 +6,31 @@ export declare class UsersService implements IUsersService {
     private prisma;
     constructor(prisma: PrismaService);
     findAll(user: any): Promise<UserEntity[]>;
-    findOne(id: string, user: any): Promise<UserEntity>;
     update(id: string, dto: UpdateUserDto, user: any): Promise<UserEntity>;
+    getProfile(userId: string): Promise<{
+        email: string;
+        name: string;
+        role: string;
+        createdAt: Date;
+    }>;
+    getUserHistory(userId: string, page: number, limit: number): Promise<{
+        results: {
+            accessedAt: Date;
+            word: {
+                id: string;
+                createdAt: Date;
+                text: string;
+            };
+        }[];
+        totalDocs: number;
+        totalPages: number;
+    }>;
+    getUserFavorites(userId: string, page: number, limit: number): Promise<{
+        results: {
+            createdAt: Date;
+            word: string;
+        }[];
+        totalDocs: number;
+        totalPages: number;
+    }>;
 }

@@ -10,4 +10,11 @@ export declare class DictionaryService {
         hasNext: boolean;
         hasPrev: boolean;
     }>;
+    findOne(word: string): Promise<{
+        id: string;
+        createdAt: Date;
+        text: string;
+    }>;
+    favoriteWord(userId: string, word: string): Promise<void>;
+    unfavoriteWord(userId: string, word: string): Promise<void>;
 }

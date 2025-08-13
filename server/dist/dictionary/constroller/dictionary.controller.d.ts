@@ -1,4 +1,5 @@
-import { DictionaryService } from "../services/dictionary.service";
+import { DictionaryService } from '../services/dictionary.service';
+import type { RequestWithUser } from 'src/common/types/express';
 export declare class DictionaryController {
     private readonly dictionaryService;
     constructor(dictionaryService: DictionaryService);
@@ -10,4 +11,11 @@ export declare class DictionaryController {
         hasNext: boolean;
         hasPrev: boolean;
     }>;
+    findOne(word: string): Promise<{
+        id: string;
+        createdAt: Date;
+        text: string;
+    }>;
+    favoriteWord(word: string, req: RequestWithUser): Promise<void>;
+    unfavoriteWord(word: string, req: RequestWithUser): Promise<void>;
 }

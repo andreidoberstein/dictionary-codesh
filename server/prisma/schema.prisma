@@ -14,6 +14,9 @@ model User {
   password  String
   role      String   @default("USER")
 
+  favorities    Favorite[]
+  wordHistories WordHistories[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -23,8 +26,32 @@ model User {
 model Word {
   id        String   @id @default(uuid())
   text      String   @unique
+
+  histories WordHistories[]
   
   createdAt DateTime @default(now())
 
   @@map("words")
+}
+
+model WordHistories {
+  id      String @id @default(uuid())
+  wordId  String
+  userId  String @default("1d2c4d8a-6166-4d70-b335-5cba0bc3a8c8")
+
+  accessedAt DateTime @default(now())
+
+  word    Word @relation(fields: [wordId], references: [id])
+  user    User @relation(fields: [userId], references: [id])
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  word      String
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, word])
 }

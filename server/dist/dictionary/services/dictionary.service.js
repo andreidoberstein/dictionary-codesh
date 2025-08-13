@@ -20,6 +20,24 @@ let DictionaryService = class DictionaryService {
     async findAll(search, page, limit) {
         return this.dictionaryRepository.findAll(search, page, limit);
     }
+    async findOne(word) {
+        const entry = await this.dictionaryRepository.findByWord(word);
+        if (!entry) {
+            throw new common_1.NotFoundException(`Palavra "${word}" não encontrada`);
+        }
+        await this.dictionaryRepository.registerHistory(word);
+        return entry;
+    }
+    async favoriteWord(userId, word) {
+        const entry = await this.dictionaryRepository.findByWord(word);
+        if (!entry) {
+            throw new common_1.NotFoundException(`Palavra "${word}" não encontrada`);
+        }
+        await this.dictionaryRepository.addFavorite(userId, word);
+    }
+    async unfavoriteWord(userId, word) {
+        await this.dictionaryRepository.unfavoriteWord(userId, word);
+    }
 };
 exports.DictionaryService = DictionaryService;
 exports.DictionaryService = DictionaryService = __decorate([
