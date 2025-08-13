@@ -2,11 +2,11 @@ import { PrismaService } from "../../prisma/prisma.service";
 export declare class DictionaryRepository {
     private prisma;
     constructor(prisma: PrismaService);
-    findAll(search: string, pageParam: number, limitParam: number): Promise<{
+    findAll(search?: string, cursor?: string, limitParam?: number): Promise<{
         results: string[];
         totalDocs: number;
-        page: number;
-        totalPages: number;
+        previous: string | null;
+        next: string | null;
         hasNext: boolean;
         hasPrev: boolean;
     }>;

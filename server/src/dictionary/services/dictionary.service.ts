@@ -5,8 +5,8 @@ import { DictionaryRepository } from "../repositories/dictionary.repository";
 export class DictionaryService {
   constructor(private readonly dictionaryRepository: DictionaryRepository) {}
 
-  async findAll(search: string, page: number, limit: number,) {
-    return this.dictionaryRepository.findAll(search, page, limit)
+  async findAll(search?: string, cursor?: string, limit?: number) {
+    return this.dictionaryRepository.findAll(search, cursor, limit);
   }
 
   async findOne(word: string) {

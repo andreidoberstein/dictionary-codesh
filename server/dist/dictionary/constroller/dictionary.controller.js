@@ -22,8 +22,8 @@ let DictionaryController = class DictionaryController {
     constructor(dictionaryService) {
         this.dictionaryService = dictionaryService;
     }
-    async findAll(search, page = '1', limit = '10') {
-        return this.dictionaryService.findAll(search, parseInt(page, 10), parseInt(limit, 10));
+    async findAll(search, cursor, limit = '10') {
+        return this.dictionaryService.findAll(search, cursor, parseInt(limit, 10));
     }
     async findOne(word) {
         return this.dictionaryService.findOne(word);
@@ -49,7 +49,7 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 204, description: 'Nenhuma palavra encontrada.' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao buscar palavras.' }),
     __param(0, (0, common_1.Query)('search')),
-    __param(1, (0, common_1.Query)('page')),
+    __param(1, (0, common_1.Query)('cursor')),
     __param(2, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
