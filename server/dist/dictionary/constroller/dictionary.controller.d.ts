@@ -1,5 +1,5 @@
 import { DictionaryService } from '../services/dictionary.service';
-import type { RequestWithUser } from 'src/common/types/express';
+import type { RequestWithUser } from '../../common/types/express';
 export declare class DictionaryController {
     private readonly dictionaryService;
     constructor(dictionaryService: DictionaryService);

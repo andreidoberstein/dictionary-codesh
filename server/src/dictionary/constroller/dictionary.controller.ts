@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { DictionaryService } from '../services/dictionary.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
-import type { RequestWithUser } from 'src/common/types/express';
+import type { RequestWithUser } from '../../common/types/express';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Dictionary')

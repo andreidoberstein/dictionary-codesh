@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from '../services/user.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
-import type { RequestWithUser } from 'src/common/types/express';
+import type { RequestWithUser } from '../../common/types/express';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Users')
