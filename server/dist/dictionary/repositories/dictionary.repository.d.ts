@@ -12,8 +12,8 @@ export declare class DictionaryRepository {
     }>;
     findByWord(word: string): Promise<{
         id: string;
-        text: string;
         createdAt: Date;
+        text: string;
     } | null>;
     registerHistory(word: string): Promise<void>;
     addFavorite(userId: string, word: string): Promise<void>;
