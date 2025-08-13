@@ -19,3 +19,12 @@ model User {
 
   @@map("users")
 }
+
+model Word {
+  id        String   @id @default(uuid())
+  text      String   @unique
+  
+  createdAt DateTime @default(now())
+
+  @@map("words")
+}
