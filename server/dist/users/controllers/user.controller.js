@@ -25,7 +25,7 @@ let UsersController = class UsersController {
         return this.usersService.findAll(req.user);
     }
     async findOne(id, req) {
-        return this.usersService.findOne((id), req.user);
+        return this.usersService.findOne(id, req.user);
     }
 };
 exports.UsersController = UsersController;
