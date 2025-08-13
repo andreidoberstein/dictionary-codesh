@@ -18,28 +18,45 @@ let DictionaryRepository = class DictionaryRepository {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findAll(search, pageParam, limitParam) {
-        const page = Math.max(pageParam || 1, 1);
+    async findAll(search, cursor, limitParam) {
         const limit = Math.max(limitParam || 10, 1);
         const where = search
             ? { text: { contains: search, mode: client_1.Prisma.QueryMode.insensitive } }
             : {};
         const totalDocs = await this.prisma.word.count({ where });
-        const words = await this.prisma.word.findMany({
+        const decodedCursor = cursor
+            ? JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))
+            : null;
+        const queryOptions = {
             where,
             select: { text: true },
             orderBy: { text: 'asc' },
-            skip: (page - 1) * limit,
-            take: limit,
-        });
-        const totalPages = Math.ceil(totalDocs / limit);
+            take: limit + 1,
+        };
+        if (decodedCursor) {
+            queryOptions.cursor = { text: decodedCursor.text };
+            queryOptions.skip = 1;
+        }
+        const words = await this.prisma.word.findMany(queryOptions);
+        let hasNext = false;
+        let hasPrev = !!decodedCursor;
+        if (words.length > limit) {
+            hasNext = true;
+            words.pop();
+        }
+        const nextCursor = hasNext
+            ? Buffer.from(JSON.stringify({ text: words[words.length - 1].text })).toString('base64')
+            : null;
+        const prevCursor = hasPrev
+            ? Buffer.from(JSON.stringify({ text: words[0].text })).toString('base64')
+            : null;
         return {
             results: words.map((w) => w.text),
             totalDocs,
-            page,
-            totalPages,
-            hasNext: page < totalPages,
-            hasPrev: page > 1,
+            previous: prevCursor,
+            next: nextCursor,
+            hasNext,
+            hasPrev,
         };
     }
     async findByWord(word) {

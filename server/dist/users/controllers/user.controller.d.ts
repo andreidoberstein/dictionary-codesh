@@ -12,12 +12,12 @@ export declare class UsersController {
     }>;
     getHistory(req: RequestWithUser, page?: string, limit?: string): Promise<{
         results: {
-            accessedAt: Date;
             word: {
                 id: string;
                 createdAt: Date;
                 text: string;
             };
+            accessedAt: Date;
         }[];
         totalDocs: number;
         page: number;
@@ -27,8 +27,8 @@ export declare class UsersController {
     }>;
     getFavorites(req: RequestWithUser, page?: string, limit?: string): Promise<{
         results: {
-            createdAt: Date;
             word: string;
+            createdAt: Date;
         }[];
         totalDocs: number;
         page: number;

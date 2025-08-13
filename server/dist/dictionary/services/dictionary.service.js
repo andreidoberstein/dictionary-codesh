@@ -17,8 +17,8 @@ let DictionaryService = class DictionaryService {
     constructor(dictionaryRepository) {
         this.dictionaryRepository = dictionaryRepository;
     }
-    async findAll(search, page, limit) {
-        return this.dictionaryRepository.findAll(search, page, limit);
+    async findAll(search, cursor, limit) {
+        return this.dictionaryRepository.findAll(search, cursor, limit);
     }
     async findOne(word) {
         const entry = await this.dictionaryRepository.findByWord(word);

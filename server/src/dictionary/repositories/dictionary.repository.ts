@@ -6,8 +6,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 export class DictionaryRepository {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(search: string, pageParam: number, limitParam: number) {
-    const page = Math.max(pageParam || 1, 1);
+  async findAll(search?: string, cursor?: string, limitParam?: number) {
     const limit = Math.max(limitParam || 10, 1);
 
     const where = search
@@ -16,25 +15,80 @@ export class DictionaryRepository {
 
     const totalDocs = await this.prisma.word.count({ where });
 
-    const words = await this.prisma.word.findMany({
+    // Decodifica cursor se existir
+    const decodedCursor = cursor
+      ? JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))
+      : null;
+
+    const queryOptions: any = {
       where,
       select: { text: true },
       orderBy: { text: 'asc' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+      take: limit + 1, // Busca 1 a mais pra saber se tem próximo
+    };
 
-    const totalPages = Math.ceil(totalDocs / limit);
+    if (decodedCursor) {
+      queryOptions.cursor = { text: decodedCursor.text };
+      queryOptions.skip = 1; // Pula o registro do cursor
+    }
+
+    const words = await this.prisma.word.findMany(queryOptions);
+
+    let hasNext = false;
+    let hasPrev = !!decodedCursor;
+
+    if (words.length > limit) {
+      hasNext = true;
+      words.pop(); // Remove o extra
+    }
+
+    const nextCursor = hasNext
+      ? Buffer.from(JSON.stringify({ text: words[words.length - 1].text })).toString('base64')
+      : null;
+
+    const prevCursor = hasPrev
+      ? Buffer.from(JSON.stringify({ text: words[0].text })).toString('base64')
+      : null;
 
     return {
       results: words.map((w) => w.text),
       totalDocs,
-      page,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrev: page > 1,
+      previous: prevCursor,
+      next: nextCursor,
+      hasNext,
+      hasPrev,
     };
   }
+
+  // async findAll(search: string, pageParam: number, limitParam: number) {
+  //   const page = Math.max(pageParam || 1, 1);
+  //   const limit = Math.max(limitParam || 10, 1);
+
+  //   const where = search
+  //     ? { text: { contains: search, mode: Prisma.QueryMode.insensitive } }
+  //     : {};
+
+  //   const totalDocs = await this.prisma.word.count({ where });
+
+  //   const words = await this.prisma.word.findMany({
+  //     where,
+  //     select: { text: true },
+  //     orderBy: { text: 'asc' },
+  //     skip: (page - 1) * limit,
+  //     take: limit,
+  //   });
+
+  //   const totalPages = Math.ceil(totalDocs / limit);
+
+  //   return {
+  //     results: words.map((w) => w.text),
+  //     totalDocs,
+  //     page,
+  //     totalPages,
+  //     hasNext: page < totalPages,
+  //     hasPrev: page > 1,
+  //   };
+  // }
 
   async findByWord(word: string) {
     return this.prisma.word.findUnique({

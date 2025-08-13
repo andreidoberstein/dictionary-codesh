@@ -31,12 +31,12 @@ export class DictionaryController {
   @ApiResponse({ status: 400, description: 'Erro ao buscar palavras.' })
   async findAll(
     @Query('search') search?: string | any,
-    @Query('page') page = '1',
+    @Query('cursor') cursor?: string | any,
     @Query('limit') limit = '10',
   ) {
     return this.dictionaryService.findAll(
       search,
-      parseInt(page, 10),
+      cursor,
       parseInt(limit, 10),
     );
   }
