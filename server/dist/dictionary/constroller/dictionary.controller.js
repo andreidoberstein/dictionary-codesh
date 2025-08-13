@@ -16,6 +16,7 @@ exports.DictionaryController = void 0;
 const common_1 = require("@nestjs/common");
 const dictionary_service_1 = require("../services/dictionary.service");
 const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
+const swagger_1 = require("@nestjs/swagger");
 let DictionaryController = class DictionaryController {
     dictionaryService;
     constructor(dictionaryService) {
@@ -37,7 +38,16 @@ let DictionaryController = class DictionaryController {
 };
 exports.DictionaryController = DictionaryController;
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Get)('en'),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar palavras (opcionalmente filtradas por search)' }),
+    (0, swagger_1.ApiQuery)({ name: 'search', required: false, example: 'apple' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, example: 1 }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, example: 10 }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Palavras retornadas com sucesso.' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Nenhuma palavra encontrada.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao buscar palavras.' }),
     __param(0, (0, common_1.Query)('search')),
     __param(1, (0, common_1.Query)('page')),
     __param(2, (0, common_1.Query)('limit')),
@@ -46,7 +56,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], DictionaryController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Get)('en/:word'),
+    (0, swagger_1.ApiOperation)({ summary: 'Buscar uma palavra específica' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Palavra retornada com sucesso.' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Palavra não encontrada.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao buscar palavra.' }),
     __param(0, (0, common_1.Param)('word')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -54,8 +70,12 @@ __decorate([
 ], DictionaryController.prototype, "findOne", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Post)('en/:word/favorite'),
     (0, common_1.HttpCode)(204),
+    (0, swagger_1.ApiOperation)({ summary: 'Marcar palavra como favorita' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Palavra favoritada com sucesso.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao favoritar palavra.' }),
     __param(0, (0, common_1.Param)('word')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -64,8 +84,12 @@ __decorate([
 ], DictionaryController.prototype, "favoriteWord", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Delete)('en/:word/unfavorite'),
     (0, common_1.HttpCode)(204),
+    (0, swagger_1.ApiOperation)({ summary: 'Remover palavra dos favoritos' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Palavra removida dos favoritos.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao remover palavra dos favoritos.' }),
     __param(0, (0, common_1.Param)('word')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -73,6 +97,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], DictionaryController.prototype, "unfavoriteWord", null);
 exports.DictionaryController = DictionaryController = __decorate([
+    (0, swagger_1.ApiTags)('Dictionary'),
     (0, common_1.Controller)('entries'),
     __metadata("design:paramtypes", [dictionary_service_1.DictionaryService])
 ], DictionaryController);

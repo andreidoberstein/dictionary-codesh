@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const auth_service_1 = require("../services/auth.service");
 const signup_dto_1 = require("../dto/signup.dto");
 const signin_dto_1 = require("../dto/signin.dto");
+const swagger_1 = require("@nestjs/swagger");
 let AuthController = class AuthController {
     authService;
     constructor(authService) {
@@ -32,6 +33,9 @@ let AuthController = class AuthController {
 exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Post)('signup'),
+    (0, swagger_1.ApiOperation)({ summary: 'Registrar um novo usuário' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Usuário registrado com sucesso.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao registrar usuário.' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [signup_dto_1.RegisterDto]),
@@ -40,12 +44,16 @@ __decorate([
 __decorate([
     (0, common_1.Post)('signin'),
     (0, common_1.HttpCode)(200),
+    (0, swagger_1.ApiOperation)({ summary: 'Login do usuário' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Login realizado com sucesso.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Credenciais inválidas.' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [signin_dto_1.LoginDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 exports.AuthController = AuthController = __decorate([
+    (0, swagger_1.ApiTags)('Auth'),
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);
