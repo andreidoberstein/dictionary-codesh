@@ -15,20 +15,20 @@ export declare class UsersService implements IUsersService {
     }>;
     getUserHistory(userId: string, page: number, limit: number): Promise<{
         results: {
-            accessedAt: Date;
             word: {
                 id: string;
                 createdAt: Date;
                 text: string;
             };
+            accessedAt: Date;
         }[];
         totalDocs: number;
         totalPages: number;
     }>;
     getUserFavorites(userId: string, page: number, limit: number): Promise<{
         results: {
-            createdAt: Date;
             word: string;
+            createdAt: Date;
         }[];
         totalDocs: number;
         totalPages: number;
