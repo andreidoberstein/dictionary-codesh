@@ -1,12 +1,12 @@
 import { UsersService } from '../services/user.service';
-import type { RequestWithUser } from 'src/common/types/express';
+import type { RequestWithUser } from '../../common/types/express';
 export declare class UsersController {
     private usersService;
     constructor(usersService: UsersService);
     findAll(req: RequestWithUser): Promise<import("../entities/user.entity").UserEntity[]>;
     getProfile(req: RequestWithUser): Promise<{
-        name: string;
         email: string;
+        name: string;
         role: string;
         createdAt: Date;
     }>;

@@ -12,8 +12,8 @@ export declare class DictionaryService {
     }>;
     findOne(word: string): Promise<{
         id: string;
-        createdAt: Date;
         text: string;
+        createdAt: Date;
     }>;
     favoriteWord(userId: string, word: string): Promise<void>;
     unfavoriteWord(userId: string, word: string): Promise<void>;

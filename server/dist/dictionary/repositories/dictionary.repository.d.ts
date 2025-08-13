@@ -1,4 +1,4 @@
-import { PrismaService } from "src/prisma/prisma.service";
+import { PrismaService } from "../../prisma/prisma.service";
 export declare class DictionaryRepository {
     private prisma;
     constructor(prisma: PrismaService);
@@ -12,8 +12,8 @@ export declare class DictionaryRepository {
     }>;
     findByWord(word: string): Promise<{
         id: string;
-        createdAt: Date;
         text: string;
+        createdAt: Date;
     } | null>;
     registerHistory(word: string): Promise<void>;
     addFavorite(userId: string, word: string): Promise<void>;
