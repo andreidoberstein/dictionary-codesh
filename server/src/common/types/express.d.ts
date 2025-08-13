@@ -1,10 +1,8 @@
-import 'express';
-declare module 'express' 
+import { Request } from 'express';
 
-interface AuthRequest extends Request {
+export interface RequestWithUser extends Request {
   user: {
     id: string;
-    name: string;
     email: string;
     role: string;
   };

@@ -1,5 +1,5 @@
 import { DictionaryService } from '../services/dictionary.service';
-import type { AuthRequest } from '../../common/types/express';
+import type { RequestWithUser } from 'src/common/types/express';
 export declare class DictionaryController {
     private readonly dictionaryService;
     constructor(dictionaryService: DictionaryService);
@@ -16,6 +16,6 @@ export declare class DictionaryController {
         createdAt: Date;
         text: string;
     }>;
-    favoriteWord(word: string, req: AuthRequest): Promise<void>;
-    unfavoriteWord(word: string, req: AuthRequest): Promise<void>;
+    favoriteWord(word: string, req: RequestWithUser): Promise<void>;
+    unfavoriteWord(word: string, req: RequestWithUser): Promise<void>;
 }

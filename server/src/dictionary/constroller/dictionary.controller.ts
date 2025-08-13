@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { DictionaryService } from '../services/dictionary.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
-import type { AuthRequest } from '../../common/types/express';
+import type { RequestWithUser } from 'src/common/types/express';
 
 @Controller('entries')
 export class DictionaryController {
@@ -40,7 +40,7 @@ export class DictionaryController {
   @HttpCode(204)
   async favoriteWord(
     @Param('word') word: string,
-    @Req() req: AuthRequest,
+    @Req() req: RequestWithUser,
   ): Promise<void> {
     const userId = req.user.id;
     await this.dictionaryService.favoriteWord(userId, word);
@@ -51,7 +51,7 @@ export class DictionaryController {
   @HttpCode(204)
   async unfavoriteWord(
     @Param('word') word: string,
-    @Req() req: AuthRequest,
+    @Req() req: RequestWithUser,
   ): Promise<void> {
     await this.dictionaryService.unfavoriteWord(req.user.id, word);
   }

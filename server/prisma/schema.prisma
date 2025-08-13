@@ -14,7 +14,8 @@ model User {
   password  String
   role      String   @default("USER")
 
-  favorities Favorite[]
+  favorities    Favorite[]
+  wordHistories WordHistories[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -36,10 +37,12 @@ model Word {
 model WordHistories {
   id      String @id @default(uuid())
   wordId  String
-
-  word    Word @relation(fields: [wordId], references: [id])
+  userId  String @default("1d2c4d8a-6166-4d70-b335-5cba0bc3a8c8")
 
   accessedAt DateTime @default(now())
+
+  word    Word @relation(fields: [wordId], references: [id])
+  user    User @relation(fields: [userId], references: [id])
 }
 
 model Favorite {

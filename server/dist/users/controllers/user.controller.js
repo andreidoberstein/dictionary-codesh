@@ -24,8 +24,31 @@ let UsersController = class UsersController {
     async findAll(req) {
         return this.usersService.findAll(req.user);
     }
-    async findOne(id, req) {
-        return this.usersService.findOne(id, req.user);
+    async getProfile(req) {
+        console.log(1);
+        return this.usersService.getProfile(req.user.id);
+    }
+    async getHistory(req, page = '1', limit = '10') {
+        const { results, totalDocs, totalPages } = await this.usersService.getUserHistory(req.user.id, parseInt(page), parseInt(limit));
+        return {
+            results,
+            totalDocs,
+            page: Number(page),
+            totalPages,
+            hasNext: Number(page) < totalPages,
+            hasPrev: Number(page) > 1,
+        };
+    }
+    async getFavorites(req, page = '1', limit = '10') {
+        const { results, totalDocs, totalPages } = await this.usersService.getUserFavorites(req.user.id, parseInt(page), parseInt(limit));
+        return {
+            results,
+            totalDocs,
+            page: Number(page),
+            totalPages,
+            hasNext: Number(page) < totalPages,
+            hasPrev: Number(page) > 1,
+        };
     }
 };
 exports.UsersController = UsersController;
@@ -39,15 +62,34 @@ __decorate([
 ], UsersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Req)()),
+    (0, common_1.Get)('me'),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], UsersController.prototype, "findOne", null);
+], UsersController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('me/history'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getHistory", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('me/favorites'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getFavorites", null);
 exports.UsersController = UsersController = __decorate([
-    (0, common_1.Controller)('users'),
+    (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UsersService])
 ], UsersController);
 //# sourceMappingURL=user.controller.js.map
