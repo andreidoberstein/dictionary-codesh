@@ -1,0 +1,1 @@
+{"version":3,"file":"words.module.js","sourceRoot":"","sources":["../../src/words/words.module.ts"],"names":[],"mappings":";;;;;;;;;AAAA,2CAAwC;AACxC,sEAAkE;AAClE,6DAAyD;AACzD,2DAAuD;AAMhD,IAAM,WAAW,GAAjB,MAAM,WAAW;CAAG,CAAA;AAAd,kCAAW;sBAAX,WAAW;IAJvB,IAAA,eAAM,EAAC;QACN,SAAS,EAAE,CAAC,4BAAY,EAAE,kCAAe,EAAE,8BAAa,CAAC;QACzD,OAAO,EAAE,CAAC,4BAAY,CAAC;KACxB,CAAC;GACW,WAAW,CAAG"}
