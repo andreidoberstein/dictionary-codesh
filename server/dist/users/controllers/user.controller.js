@@ -16,6 +16,7 @@ exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const user_service_1 = require("../services/user.service");
 const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
+const swagger_1 = require("@nestjs/swagger");
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -54,7 +55,12 @@ let UsersController = class UsersController {
 exports.UsersController = UsersController;
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar todos os usuários' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Usuários retornados com sucesso.' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Nenhum usuário encontrado.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao listar usuários.' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -62,7 +68,12 @@ __decorate([
 ], UsersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Get)('me'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obter dados do usuário logado' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Perfil retornado com sucesso.' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Perfil não encontrado.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao obter perfil.' }),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -70,7 +81,14 @@ __decorate([
 ], UsersController.prototype, "getProfile", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Get)('me/history'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obter histórico do usuário' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, example: 1 }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, example: 10 }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Histórico retornado com sucesso.' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Não há histórico.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao buscar histórico.' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Query)('page')),
     __param(2, (0, common_1.Query)('limit')),
@@ -80,7 +98,14 @@ __decorate([
 ], UsersController.prototype, "getHistory", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Get)('me/favorites'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obter favoritos do usuário' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, example: 1 }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, example: 10 }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Favoritos retornados com sucesso.' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Nenhum favorito encontrado.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Erro ao buscar favoritos.' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Query)('page')),
     __param(2, (0, common_1.Query)('limit')),
@@ -89,6 +114,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getFavorites", null);
 exports.UsersController = UsersController = __decorate([
+    (0, swagger_1.ApiTags)('Users'),
     (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UsersService])
 ], UsersController);

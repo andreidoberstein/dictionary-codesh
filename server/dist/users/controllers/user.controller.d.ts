@@ -5,19 +5,19 @@ export declare class UsersController {
     constructor(usersService: UsersService);
     findAll(req: RequestWithUser): Promise<import("../entities/user.entity").UserEntity[]>;
     getProfile(req: RequestWithUser): Promise<{
-        email: string;
         name: string;
+        email: string;
         role: string;
         createdAt: Date;
     }>;
     getHistory(req: RequestWithUser, page?: string, limit?: string): Promise<{
         results: {
+            accessedAt: Date;
             word: {
                 id: string;
                 createdAt: Date;
                 text: string;
             };
-            accessedAt: Date;
         }[];
         totalDocs: number;
         page: number;
@@ -27,8 +27,8 @@ export declare class UsersController {
     }>;
     getFavorites(req: RequestWithUser, page?: string, limit?: string): Promise<{
         results: {
-            word: string;
             createdAt: Date;
+            word: string;
         }[];
         totalDocs: number;
         page: number;

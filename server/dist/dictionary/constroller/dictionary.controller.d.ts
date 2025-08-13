@@ -13,8 +13,8 @@ export declare class DictionaryController {
     }>;
     findOne(word: string): Promise<{
         id: string;
-        createdAt: Date;
         text: string;
+        createdAt: Date;
     }>;
     favoriteWord(word: string, req: RequestWithUser): Promise<void>;
     unfavoriteWord(word: string, req: RequestWithUser): Promise<void>;
