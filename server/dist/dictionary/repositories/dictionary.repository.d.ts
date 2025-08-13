@@ -10,4 +10,12 @@ export declare class DictionaryRepository {
         hasNext: boolean;
         hasPrev: boolean;
     }>;
+    findByWord(word: string): Promise<{
+        id: string;
+        createdAt: Date;
+        text: string;
+    } | null>;
+    registerHistory(word: string): Promise<void>;
+    addFavorite(userId: string, word: string): Promise<void>;
+    unfavoriteWord(userId: string, word: string): Promise<void>;
 }
