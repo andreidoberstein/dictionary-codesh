@@ -1,11 +1,10 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { getSupabase } from "@/lib/getSupabase";
 
 interface AuthContextType {
   user: any | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (email: string, password: string) => Promise<{ error?: string }>;
+  signUp: (name: string, email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -16,50 +15,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let ignore = false;
+    const ignore = false;
     (async () => {
-      const supabase = await getSupabase();
-      if (!supabase) {
-        setLoading(false);
-        return;
-      }
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!ignore) {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
+      
+      
     })();
 
     (async () => {
-      const supabase = await getSupabase();
-      if (!supabase) return;
-      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null);
-      });
-      return () => listener.subscription.unsubscribe();
+
     })();
   }, []);
 
   const signIn: AuthContextType["signIn"] = async (email, password) => {
-    const supabase = await getSupabase();
-    if (!supabase) return { error: "Autenticação indisponível" };
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return error ? { error: error.message } : {};
+    const data = {
+      email,
+      password
+    }
+    // const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(`http://localhost:3030/auth/signin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json"},
+      body: JSON.stringify(data)
+    });
+
+    if (!res.ok) throw new Error("Erro na API");
+    
+    const user = await res.json() 
+    setUser(user)
+    
+    return {
+      success: true,
+      data: user
+    }
   };
 
-  const signUp: AuthContextType["signUp"] = async (email, password) => {
-    const supabase = await getSupabase();
-    if (!supabase) return { error: "Autenticação indisponível" };
-    const { error } = await supabase.auth.signUp({ email, password });
-    return error ? { error: error.message } : {};
-  };
+  const signUp: AuthContextType["signUp"] = async (name, email, password) => {
+    const data = {
+      name,
+      email,
+      password
+    }
+    // const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(`http://localhost:3030/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json"},
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error("Erro na API");
+    return res.json();
+  }
+
 
   const signOut = async () => {
-    const supabase = await getSupabase();
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    
   };
 
   return (

@@ -7,20 +7,37 @@ import { Helmet } from "react-helmet-async";
 
 const Login = () => {
   const { signIn, signUp } = useAuth();
+  const [inputName, setInputName] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const location = useLocation() as any;
+  const location = useLocation();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const res = isSignup ? await signUp(email, password) : await signIn(email, password);
-    if (res.error) setError(res.error);
-    else navigate(location.state?.from?.pathname || "/");
+    const res = isSignup ? await signUp(name, email, password) : await signIn(email, password);
+
+    setEmail("")
+    setPassword("")
+
+    if (res.error) {
+      setError(res.error)
+    } else if(isSignup) {
+      setIsSignup((s) => !s)
+      setInputName((s) => !s)
+    } else {
+      navigate(location.state?.from?.pathname || "/");
+    } 
   };
+
+  const handleClickRegister = () => {
+    setIsSignup((s) => !s)
+    setInputName((s) => !s)
+  }
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -32,6 +49,12 @@ const Login = () => {
       <section className="mx-auto max-w-sm">
         <h1 className="mb-4 text-2xl font-semibold">{isSignup ? "Criar conta" : "Entrar"}</h1>
         <form onSubmit={onSubmit} className="space-y-3">
+          { inputName &&
+            <div >
+              <label className="mb-1 block text-sm">Nome</label>
+              <Input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+            </div>
+          }
           <div>
             <label className="mb-1 block text-sm">E-mail</label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -45,7 +68,7 @@ const Login = () => {
             <Button type="submit" variant="default" className="flex-1">
               {isSignup ? "Cadastrar" : "Entrar"}
             </Button>
-            <Button type="button" variant="secondary" onClick={() => setIsSignup((s) => !s)}>
+            <Button type="button" variant="secondary" onClick={handleClickRegister}> 
               {isSignup ? "Já tenho conta" : "Criar conta"}
             </Button>
           </div>
