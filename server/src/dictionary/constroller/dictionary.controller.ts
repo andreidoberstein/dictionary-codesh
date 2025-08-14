@@ -30,14 +30,15 @@ export class DictionaryController {
   @ApiResponse({ status: 204, description: 'Nenhuma palavra encontrada.' })
   @ApiResponse({ status: 400, description: 'Erro ao buscar palavras.' })
   async findAll(
-    @Query('search') search?: string | any,
-    @Query('cursor') cursor?: string | any,
-    @Query('limit') limit = '10',
+    @Query('search') search?: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
   ) {
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
     return this.dictionaryService.findAll(
       search,
       cursor,
-      parseInt(limit, 10),
+      limitNum,
     );
   }
   
