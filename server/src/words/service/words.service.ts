@@ -9,14 +9,20 @@ export class WordsService {
   constructor(private readonly wordsRepo: WordsRepository) {}
 
   async importFromGitHub() {
+    const limitImportWors = 5000
     const rawUrl = 'https://raw.githubusercontent.com/meetDeveloper/freeDictionaryAPI/master/meta/wordList/english.txt';
 
     const { data } = await axios.get(rawUrl);
 
-    const words = data
+    let words = data
       .split('\n')
       .map(w => w.trim())
       .filter(Boolean);
+
+    if(limitImportWors && words.length > limitImportWors) {
+      words = words.slice(0, limitImportWors);
+      this.logger.warn(`⚠️ Limitando importação para ${limitImportWors} palavras.`);
+    }
 
     this.logger.log(`Encontradas ${words.length} palavras. Salvando no banco...`);
 
