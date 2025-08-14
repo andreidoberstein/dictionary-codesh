@@ -1,7 +1,10 @@
 # compiled output
-.server/dist
-.server/node_modules
-.server/build
+server/dist
+server/node_modules
+server/build
 
 # dotenv environment variable files
-.server/.env
+server/.env
+
+
+client/node_modules
