@@ -24,12 +24,17 @@ let WordsService = WordsService_1 = class WordsService {
         this.wordsRepo = wordsRepo;
     }
     async importFromGitHub() {
+        const limitImportWors = 5000;
         const rawUrl = 'https://raw.githubusercontent.com/meetDeveloper/freeDictionaryAPI/master/meta/wordList/english.txt';
         const { data } = await axios_1.default.get(rawUrl);
-        const words = data
+        let words = data
             .split('\n')
             .map(w => w.trim())
             .filter(Boolean);
+        if (limitImportWors && words.length > limitImportWors) {
+            words = words.slice(0, limitImportWors);
+            this.logger.warn(`⚠️ Limitando importação para ${limitImportWors} palavras.`);
+        }
         this.logger.log(`Encontradas ${words.length} palavras. Salvando no banco...`);
         await this.wordsRepo.upsertMany(words);
         this.logger.log('Importação concluída!');
