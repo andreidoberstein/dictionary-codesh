@@ -7,7 +7,7 @@ export class DictionaryRepository {
   constructor(private prisma: PrismaService) {}
 
   async findAll(search?: string, cursor?: string, limitParam?: number) {
-    const limit = Math.max(limitParam || 10, 1);
+    const limit = search ? Math.max(limitParam || 10, 1) : undefined;
 
     const where = search
       ? { text: { contains: search, mode: Prisma.QueryMode.insensitive } }
@@ -23,9 +23,12 @@ export class DictionaryRepository {
     const queryOptions: any = {
       where,
       select: { text: true },
-      orderBy: { text: 'asc' },
-      take: limit + 1, // Busca 1 a mais pra saber se tem próximo
+      orderBy: search ? { text: 'asc' } : undefined,
     };
+
+    if (limit) {
+      queryOptions.take = limit + 1; // +1 para saber se há próximo
+    }
 
     if (decodedCursor) {
       queryOptions.cursor = { text: decodedCursor.text };
@@ -37,7 +40,7 @@ export class DictionaryRepository {
     let hasNext = false;
     let hasPrev = !!decodedCursor;
 
-    if (words.length > limit) {
+    if (limit && words.length > limit) {
       hasNext = true;
       words.pop(); // Remove o extra
     }
@@ -59,36 +62,6 @@ export class DictionaryRepository {
       hasPrev,
     };
   }
-
-  // async findAll(search: string, pageParam: number, limitParam: number) {
-  //   const page = Math.max(pageParam || 1, 1);
-  //   const limit = Math.max(limitParam || 10, 1);
-
-  //   const where = search
-  //     ? { text: { contains: search, mode: Prisma.QueryMode.insensitive } }
-  //     : {};
-
-  //   const totalDocs = await this.prisma.word.count({ where });
-
-  //   const words = await this.prisma.word.findMany({
-  //     where,
-  //     select: { text: true },
-  //     orderBy: { text: 'asc' },
-  //     skip: (page - 1) * limit,
-  //     take: limit,
-  //   });
-
-  //   const totalPages = Math.ceil(totalDocs / limit);
-
-  //   return {
-  //     results: words.map((w) => w.text),
-  //     totalDocs,
-  //     page,
-  //     totalPages,
-  //     hasNext: page < totalPages,
-  //     hasPrev: page > 1,
-  //   };
-  // }
 
   async findByWord(word: string) {
     return this.prisma.word.findUnique({
