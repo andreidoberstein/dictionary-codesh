@@ -2,16 +2,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Input } from "@/components/ui/input";
-
-const WORDS_URL =
-  "https://raw.githubusercontent.com/first20hours/google-10000-english/master/20k.txt";
+import { wordsList } from "@/integrations/api/words";
 
 const chunkSize = 50;
 
 const Words = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const q = searchParams.get("q") || "";
+  const search = searchParams.get("search") || "";
   const [allWords, setAllWords] = useState<string[]>([]);
+  const [visibleWords, setVisibleWords] = useState<string[]>([]);
   const [visibleCount, setVisibleCount] = useState(chunkSize);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
@@ -20,25 +19,23 @@ const Words = () => {
     let active = true;
     const load = async () => {
       try {
-        const res = await fetch(WORDS_URL);
-        const txt = await res.text();
-        const words = txt.split(/\n|\r/).filter(Boolean);
-        if (active) setAllWords(words);
+        const query = search ? `?search=${encodeURIComponent(search)}` : "";
+        const res = await wordsList();
+        const words = await res.results;
+        if (active) {
+          setAllWords(words);
+          setVisibleWords(words); 
+        }
       } catch {
-        if (active)
-          setAllWords([
-            "hello",
-            "world",
-            "dictionary",
-            "language",
-            "programming",
-            "typescript",
-            "react",
-            "javascript",
-            "mobile",
-            "favorite",
-            "history",
-          ]);
+        const fallback = [
+          "hello",
+          "world",
+          "dictionary",
+          "language",
+          "programming",
+        ];
+        setAllWords(fallback);
+        setVisibleWords(fallback.slice(0, chunkSize));
       }
     };
     load();
@@ -47,32 +44,43 @@ const Words = () => {
     };
   }, []);
 
+  // Filtrar palavras de acordo com a busca
   const filtered = useMemo(() => {
-    return q
-      ? allWords.filter((w) => w.toLowerCase().includes(q.toLowerCase()))
+    return search
+      ? allWords.filter((w) => w.toLowerCase().includes(search.toLowerCase()))
       : allWords;
-  }, [allWords, q]);
+  }, [allWords, search]);
 
+  // Atualizar palavras visíveis quando o filter muda
+  useEffect(() => {
+    setVisibleCount(chunkSize);
+    setVisibleWords(filtered.slice(0, chunkSize));
+  }, [filtered]);
+
+  // Observador de rolagem infinita
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver((entries) => {
+
+    const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
-        setVisibleCount((v) => Math.min(v + chunkSize, filtered.length));
+        setVisibleCount((prev) => {
+          const nextCount = Math.min(prev + chunkSize, filtered.length);
+          setVisibleWords(filtered.slice(0, nextCount));
+          return nextCount;
+        });
       }
     });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [filtered.length]);
 
-  useEffect(() => {
-    setVisibleCount(chunkSize);
-  }, [q]);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [filtered]);
 
+  // Atualiza URL ao digitar
   const onSearch = (value: string) => {
     const next = new URLSearchParams(searchParams);
-    if (value) next.set("q", value);
-    else next.delete("q");
+    if (value) next.set("search", value);
+    else next.delete("search");
     setSearchParams(next, { replace: true });
   };
 
@@ -80,12 +88,14 @@ const Words = () => {
     <main className="container mx-auto px-4 py-4">
       <Helmet>
         <title>Explorar palavras</title>
-        <meta name="description" content="Explore palavras com rolagem infinita e busca compartilhável." />
+        <meta
+          name="description"
+          content="Explore palavras com rolagem infinita e busca compartilhável."
+        />
         <link rel="canonical" href={window.location.href} />
       </Helmet>
-      
+
       <section className="space-y-6">
-        {/* Tabs */}
         <div className="flex gap-1 bg-muted rounded-lg p-1">
           <button className="flex-1 py-2 px-4 bg-background text-foreground rounded-md text-sm font-medium">
             Word list
@@ -96,17 +106,16 @@ const Words = () => {
         </div>
 
         <h1 className="text-xl font-semibold">Word list</h1>
-        
+
         <Input
           placeholder="Buscar palavra..."
-          defaultValue={q}
+          defaultValue={search}
           onChange={(e) => onSearch(e.target.value)}
           aria-label="Buscar palavra"
         />
-        
-        {/* Word Grid */}
+
         <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-          {filtered.slice(0, visibleCount).map((w) => (
+          {visibleWords.map((w) => (
             <button
               key={w}
               className="p-3 text-center border rounded-md hover:bg-accent transition-colors text-sm"
@@ -116,14 +125,19 @@ const Words = () => {
               {w}
             </button>
           ))}
-          {/* Placeholder dots for remaining slots */}
-          {Array.from({ length: Math.max(0, 6 - (filtered.slice(0, visibleCount).length % 6)) }).map((_, i) => (
-            <div key={`placeholder-${i}`} className="p-3 text-center border rounded-md opacity-20">
+
+          {Array.from({
+            length: Math.max(0, 6 - (visibleWords.length % 6)),
+          }).map((_, i) => (
+            <div
+              key={`placeholder-${i}`}
+              className="p-3 text-center border rounded-md opacity-20"
+            >
               ...
             </div>
           ))}
         </div>
-        
+
         <div ref={sentinelRef} className="h-6" />
       </section>
     </main>

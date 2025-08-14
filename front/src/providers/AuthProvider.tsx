@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password
     }
-    // const res = await fetch(`${BASE_URL}${path}`, {
     const res = await fetch(`http://localhost:3030/auth/signin`, {
       method: "POST",
       headers: { "Content-Type": "application/json"},
@@ -40,7 +39,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (!res.ok) throw new Error("Erro na API");
     
-    const user = await res.json() 
+    const user = await res.json()
+    localStorage.setItem("token", user.token);
+
     setUser(user)
     
     return {
@@ -55,7 +56,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password
     }
-    // const res = await fetch(`${BASE_URL}${path}`, {
     const res = await fetch(`http://localhost:3030/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json"},
