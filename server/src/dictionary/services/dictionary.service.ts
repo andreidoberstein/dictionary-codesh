@@ -30,9 +30,6 @@ export class DictionaryService {
         throw new NotFoundException(`Palavra "${word}" não encontrada`);
       }
 
-      // if (!entry) {
-      //   throw new NotFoundException(`Palavra "${word}" não encontrada`);
-      // }
       await this.dictionaryRepository.registerHistory(word, userId);
       return data;
     } catch (error) {
