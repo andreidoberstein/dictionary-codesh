@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Input } from "@/components/ui/input";
-import { wordsList } from "@/integrations/api/words";
+import { userFavorites, userHistories, wordsList } from "@/integrations/api/words";
 import WordDetail from "./WordDetail";
 
 const Words = () => {
@@ -18,17 +18,19 @@ const Words = () => {
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrev, setHasPrev] = useState(false);
+  const [activeButton, setActiveButton] = useState('wordList')
 
   const fetchWords = async (searchQuery: string, pageNum: number = 1, limitNum: number = 4) => {
     if (isLoading) return;
     setIsLoading(true);
 
-    const cursor = pageNum > 1 && visibleWords.length > 0 
-      ? btoa(JSON.stringify({ text: visibleWords[visibleWords.length - 1] })) 
-      : '';
+    const cursor = pageNum > 1 && visibleWords.length > 0 ? btoa(JSON.stringify({ text: visibleWords[visibleWords.length - 1] })) : '';
     const data = await wordsList(searchQuery, cursor, limitNum);
-    
-    setVisibleWords((prev) => (pageNum === 1 ? data.results : [...prev, ...data.results])); // Concatena apenas para páginas subsequentes
+    setVisibleWords(data.results);
+    setPage(data.page);
+    setHasNext(data.hasNext);
+    setHasPrev(data.hasPrev);
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -98,6 +100,26 @@ const Words = () => {
     setSearchValue(value); // Atualiza o valor de busca
   };
 
+  const handleFavoritesTab = async () => {
+    setActiveButton('favorites')
+    const favorites = await userFavorites(1, 10);
+    const wordsArray = favorites.results.map(item => item.word)
+    setVisibleWords(wordsArray)
+  }
+
+  const handleHistoriesTab = async () => {
+    setActiveButton('histories')
+    const histories = await userHistories(1, 10);
+    console.log(histories.results)
+    const wordsArray = histories.results.map(item => item.word.text)
+    console.log(wordsArray)
+    setVisibleWords(wordsArray)
+  }
+  const handleWordListTab = async () => {
+    setActiveButton('wordList')
+    fetchWords(search, 1, limit)
+  }
+
   return (
     <main className="container mx-auto px-4 py-4">
       <Helmet>
@@ -125,11 +147,32 @@ const Words = () => {
         {/* Painel direito - lista */}
         <div className="flex-1 space-y-6">
           <div className="flex gap-1 bg-muted rounded-lg p-1">
-            <button className="flex-1 py-2 px-4 bg-background text-foreground rounded-md text-sm font-medium">
+            <button 
+              onClick={handleWordListTab}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
+                activeButton === 'wordList'
+                  ? 'bg-background text-foreground'
+                  : 'text-muted-foreground hover:bg-background/50'
+              }`}>
               Word list
             </button>
-            <button className="flex-1 py-2 px-4 text-muted-foreground rounded-md text-sm font-medium hover:bg-background/50">
+            <button
+              onClick={handleFavoritesTab}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
+                activeButton === 'favorites'
+                  ? 'bg-background text-foreground'
+                  : 'text-muted-foreground hover:bg-background/50'
+              }`}>
               Favorites
+            </button>
+            <button 
+              onClick={handleHistoriesTab}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
+                activeButton === 'histories'
+                  ? 'bg-background text-foreground'
+                  : 'text-muted-foreground hover:bg-background/50'
+              }`}>
+              Histories
             </button>
           </div>
 

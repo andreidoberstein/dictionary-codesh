@@ -81,8 +81,8 @@ export class DictionaryRepository {
     });
 
     if (!entry) return;
-
-    await this.prisma.wordHistories.create({
+    
+    const d = await this.prisma.wordHistories.create({
       data: {
         wordId: entry.id,
         accessedAt: new Date(),
