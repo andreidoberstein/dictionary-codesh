@@ -74,7 +74,7 @@ export class DictionaryRepository {
     });
   }
 
-  async registerHistory(word: string) {
+  async registerHistory(word: string, userId: string) {
     const entry = await this.prisma.word.findUnique({
       where: { text: word },
       select: { id: true },
@@ -84,6 +84,7 @@ export class DictionaryRepository {
     
     const d = await this.prisma.wordHistories.create({
       data: {
+        userId: userId,
         wordId: entry.id,
         accessedAt: new Date(),
       }

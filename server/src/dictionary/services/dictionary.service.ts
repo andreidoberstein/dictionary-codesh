@@ -14,7 +14,7 @@ export class DictionaryService {
     return this.dictionaryRepository.findAll(search, cursor, limit);
   }
 
-  async findOne(word: string) {
+  async findOne(word: string, userId: string) {
     try {
       const response = await this.httpService
       .get(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`)
@@ -24,7 +24,7 @@ export class DictionaryService {
       if (!entry) {
         throw new NotFoundException(`Palavra "${word}" não encontrada`);
       }
-      await this.dictionaryRepository.registerHistory(word);
+      await this.dictionaryRepository.registerHistory(word, userId);
       return entry;
     } catch (error) {
       console.error('Erro ao buscar palavra:', error);

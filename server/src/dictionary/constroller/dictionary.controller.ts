@@ -48,9 +48,13 @@ export class DictionaryController {
   @ApiOperation({ summary: 'Buscar uma palavra específica' })
   @ApiResponse({ status: 200, description: 'Palavra retornada com sucesso.' })
   @ApiResponse({ status: 204, description: 'Palavra não encontrada.' })
-  @ApiResponse({ status: 400, description: 'Erro ao buscar palavra.' })
-  async findOne(@Param('word') word: string) {
-    return this.dictionaryService.findOne(word);
+  @ApiResponse({ status: 400, description: 'Erro ao buscar palavra.' })    
+  async findOne(
+    @Param('word') word: string,
+    @Req() req: RequestWithUser
+  ) {
+    const userId = req.user.id;
+    return this.dictionaryService.findOne(word, userId);
   }
 
   @UseGuards(JwtAuthGuard)
