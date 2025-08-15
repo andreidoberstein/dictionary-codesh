@@ -101,19 +101,22 @@ const Words = () => {
   };
 
   const handleFavoritesTab = async () => {
+    setVisibleWords([])
     setActiveButton('favorites')
     const favorites = await userFavorites(1, 10);
     const wordsArray = favorites.results.map(item => item.word)
     setVisibleWords(wordsArray)
   }
-
+  
   const handleHistoriesTab = async () => {
+    setVisibleWords([])
     setActiveButton('histories')
     const histories = await userHistories(1, 10);
     const wordsArray = histories.results.map(item => item.word.text)
     setVisibleWords(wordsArray)
   }
   const handleWordListTab = async () => {
+    setVisibleWords([])
     setActiveButton('wordList')
     fetchWords(search, 1, limit)
   }
@@ -138,7 +141,10 @@ const Words = () => {
               allWords={allWords}
             />
           ) : (
-            <p className="text-muted-foreground">Selecione uma palavra para ver detalhes</p>
+            <WordDetail 
+              term="hello" 
+              allWords={allWords}
+            />
           )}
         </div>
 

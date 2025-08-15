@@ -17,14 +17,20 @@ interface WordDetailProps {
 }
 
 const fetchWord = async (term: string) => {
-  const res = await wordDetail(term)
-  console.log(res)
-  if (!res.ok) throw new Error("Falha ao buscar palavra");
-  const data = await res.json();
-  const item = data[0];
-  const phonetic: string | undefined = item?.phonetic || item?.phonetics?.[0]?.text;
-  const meanings: Meaning[] = item?.meanings || [];
-  return { phonetic, meanings };
+  try {
+    const res = await wordDetail(term);
+    const item = res[0];
+    console.log(item)
+    const phonetic = item?.phonetic || item?.phonetics?.[0]?.text || item?.phonetics?.[1]?.text;
+    const meanings = item?.meanings || [];
+    console.log(phonetic)
+    return { phonetic, meanings };
+  } catch (error) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error('Erro ao buscar a palavra');
+  }
 };
 
 const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetailProps) => {
@@ -45,6 +51,7 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
         if (!active) return;
         setPhonetic(phonetic);
         setMeanings(meanings);
+        console.log(phonetic)
       } catch (e) {
         if (!active) return;
         setError(e.message ?? "Erro inesperado");
