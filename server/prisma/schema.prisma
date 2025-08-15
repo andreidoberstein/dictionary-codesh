@@ -37,7 +37,7 @@ model Word {
 model WordHistories {
   id      String @id @default(uuid())
   wordId  String
-  userId  String @default("1d2c4d8a-6166-4d70-b335-5cba0bc3a8c8")
+  userId  String
 
   accessedAt DateTime @default(now())
 

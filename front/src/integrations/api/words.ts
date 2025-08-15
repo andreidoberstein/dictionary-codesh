@@ -25,3 +25,21 @@ export async function unfavoriteWord(word: string) {
   const { data } = await apiClient.post(API_ENDPOINTS.words.unfavorite(word));
   return data;
 }
+
+export async function userFavorites(page: number = 1, limit: number = 10) {
+  const params = new URLSearchParams();
+  params.append('page', page.toString());
+  params.append('limit', limit.toString());
+
+  const { data } = await apiClient.get(`${API_ENDPOINTS.user.favorites}?${params.toString()}`);
+  return data;
+}
+
+export async function userHistories(page: number = 1, limit: number = 10) {
+  const params = new URLSearchParams();
+  params.append('page', page.toString());
+  params.append('limit', limit.toString());
+
+  const { data } = await apiClient.get(`${API_ENDPOINTS.user.histories}?${params.toString()}`);
+  return data;
+}

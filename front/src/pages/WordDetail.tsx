@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/lib/getSupabase";
 import { useAuth } from "@/providers/AuthProvider";
+import { favoriteWord, wordDetail } from "@/integrations/api/words";
 
 interface Meaning {
   partOfSpeech: string;
@@ -16,7 +17,9 @@ interface WordDetailProps {
 }
 
 const fetchWord = async (term: string) => {
-  const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(term)}`);
+  // const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(term)}`);
+  const res = await wordDetail(term)
+  console.log(res)
   if (!res.ok) throw new Error("Falha ao buscar palavra");
   const data = await res.json();
   const item = data[0];
@@ -53,35 +56,9 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
     return () => { active = false };
   }, [term]);
 
-  useEffect(() => {
-    (async () => {
-      if (!user || !term) return;
-      const supabase = await getSupabase();
-      if (!supabase) return;
-
-      await supabase.from("history").insert({ term, user_id: user.id }).catch(() => {});
-
-      const { data } = await supabase
-        .from("favorites")
-        .select("term")
-        .eq("user_id", user.id)
-        .eq("term", term)
-        .maybeSingle();
-      setIsFavorite(!!data);
-    })();
-  }, [user, term]);
-
   const toggleFavorite = async () => {
     if (!user) return;
-    const supabase = await getSupabase();
-    if (!supabase) return;
-    if (isFavorite) {
-      await supabase.from("favorites").delete().eq("user_id", user.id).eq("term", term);
-      setIsFavorite(false);
-    } else {
-      await supabase.from("favorites").upsert({ term, user_id: user.id });
-      setIsFavorite(true);
-    }
+    await favoriteWord(term);
   };
 
   const goNext = () => {
