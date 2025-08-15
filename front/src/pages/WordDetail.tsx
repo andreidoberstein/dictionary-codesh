@@ -17,7 +17,6 @@ interface WordDetailProps {
 }
 
 const fetchWord = async (term: string) => {
-  // const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(term)}`);
   const res = await wordDetail(term)
   console.log(res)
   if (!res.ok) throw new Error("Falha ao buscar palavra");

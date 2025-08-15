@@ -16,12 +16,6 @@ export const Header = () => {
           <Link to="/" className={location.pathname === "/" ? "opacity-100" : "opacity-80"}>
             <Button variant="ghost" size="sm">Explorar</Button>
           </Link>
-          <Link to="/favorites" className={location.pathname === "/favorites" ? "opacity-100" : "opacity-80"}>
-            <Button variant="ghost" size="sm">Favoritos</Button>
-          </Link>
-          <Link to="/history" className={location.pathname === "/history" ? "opacity-100" : "opacity-80"}>
-            <Button variant="ghost" size="sm">Histórico</Button>
-          </Link>
           {user ? (
             <Button variant="outline" size="sm" onClick={signOut} aria-label="Sair">
               Sair
