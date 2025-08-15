@@ -20,13 +20,26 @@ export class DictionaryService {
       .get(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`)
       .toPromise();
 
-      const entry = response?.data
-      if (!entry) {
+      const data = response?.data
+      // Caso a API retorne o formato de erro dela
+      if (Array.isArray(data) === false && data?.title === 'No Definitions Found') {
         throw new NotFoundException(`Palavra "${word}" não encontrada`);
       }
+      // Se o retorno for vazio ou inválido
+      if (!data || !Array.isArray(data)) {
+        throw new NotFoundException(`Palavra "${word}" não encontrada`);
+      }
+
+      // if (!entry) {
+      //   throw new NotFoundException(`Palavra "${word}" não encontrada`);
+      // }
       await this.dictionaryRepository.registerHistory(word, userId);
-      return entry;
+      return data;
     } catch (error) {
+      if (error.response?.status === 404) {
+        throw new NotFoundException(`Palavra "${word}" não encontrada na API`);
+      }
+      console.error('Erro ao consultar API externa:', error.message);
       throw new HttpException(
         'Erro ao consultar API externa',
         HttpStatus.INTERNAL_SERVER_ERROR,

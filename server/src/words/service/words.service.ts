@@ -17,7 +17,8 @@ export class WordsService {
     let words = data
       .split('\n')
       .map(w => w.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter(word => !/[\s-]/.test(word))
 
     if(limitImportWors && words.length > limitImportWors) {
       words = words.slice(0, limitImportWors);
