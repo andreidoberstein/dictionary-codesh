@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/lib/getSupabase";
@@ -8,6 +7,12 @@ import { useAuth } from "@/providers/AuthProvider";
 interface Meaning {
   partOfSpeech: string;
   definitions: { definition: string; example?: string }[];
+}
+
+interface WordDetailProps {
+  term: string;
+  allWords?: string[]; // Optional prop with default
+  onSelectWord?: (word: string) => void; // Optional callback
 }
 
 const fetchWord = async (term: string) => {
@@ -20,8 +25,7 @@ const fetchWord = async (term: string) => {
   return { phonetic, meanings };
 };
 
-const WordDetail = () => {
-  const { term = "" } = useParams();
+const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetailProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [phonetic, setPhonetic] = useState<string | undefined>();
@@ -39,16 +43,14 @@ const WordDetail = () => {
         if (!active) return;
         setPhonetic(phonetic);
         setMeanings(meanings);
-      } catch (e: any) {
+      } catch (e) {
         if (!active) return;
         setError(e.message ?? "Erro inesperado");
       } finally {
         if (active) setLoading(false);
       }
     })();
-    return () => {
-      active = false;
-    };
+    return () => { active = false };
   }, [term]);
 
   useEffect(() => {
@@ -56,7 +58,9 @@ const WordDetail = () => {
       if (!user || !term) return;
       const supabase = await getSupabase();
       if (!supabase) return;
+
       await supabase.from("history").insert({ term, user_id: user.id }).catch(() => {});
+
       const { data } = await supabase
         .from("favorites")
         .select("term")
@@ -80,64 +84,75 @@ const WordDetail = () => {
     }
   };
 
+  const goNext = () => {
+    const idx = allWords.indexOf(term);
+    if (idx >= 0 && idx < allWords.length - 1) {
+      onSelectWord(allWords[idx + 1]);
+    }
+  };
+
+  const goPrev = () => {
+    const idx = allWords.indexOf(term);
+    if (idx > 0) {
+      onSelectWord(allWords[idx - 1]);
+    }
+  };
+
+  const playPhonetic = () => {
+    if (!term) return;
+    const utter = new SpeechSynthesisUtterance(term);
+    utter.lang = "en-US";
+    speechSynthesis.speak(utter);
+  };
+
   const title = useMemo(() => `${term} — Significados e fonética`, [term]);
 
   return (
-    <main className="container mx-auto px-4 py-4 max-w-2xl">
+    <div className="space-y-6">
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={`Veja significados e fonética de ${term}. Salve como favorito.`} />
-        <link rel="canonical" href={window.location.href} />
       </Helmet>
-      
-      <section className="space-y-6">
-        {/* Word Card */}
-        <div className="bg-gradient-to-br from-purple-200 to-pink-200 dark:from-purple-800 dark:to-pink-800 rounded-lg p-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">{term}</h1>
-          {phonetic && <p className="text-lg text-gray-600 dark:text-gray-300">{phonetic}</p>}
-        </div>
 
-        {/* Audio Bar */}
-        <div className="bg-blue-500 h-2 rounded-full relative overflow-hidden">
-          <div className="bg-blue-300 h-full w-1/3 rounded-full"></div>
-        </div>
+      <div className="flex justify-between">
+        <Button onClick={goPrev} disabled={allWords.indexOf(term) === 0}>← Anterior</Button>
+        <Button onClick={goNext} disabled={allWords.indexOf(term) === allWords.length - 1}>Próxima →</Button>
+      </div>
 
-        {/* Meanings Section */}
-        {loading && <p className="text-center text-muted-foreground">Carregando...</p>}
-        {error && <p className="text-center text-destructive">{error}</p>}
-        {!loading && !error && meanings.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Meanings</h2>
-            {meanings.map((m, i) => (
-              <div key={i} className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  {m.partOfSpeech}. "{m.definitions[0]?.definition || 'No definition available'}"
-                </p>
-              </div>
-            ))}
+      <div className="bg-gradient-to-br from-purple-200 to-pink-200 dark:from-purple-800 dark:to-pink-800 rounded-lg p-6 text-center">
+        <h1 className="text-3xl font-bold mb-2">{term}</h1>
+        {phonetic && (
+          <div className="flex flex-col items-center">
+            <p className="text-lg">{phonetic}</p>
+            <Button className="mt-2" onClick={playPhonetic}>▶ Ouvir</Button>
           </div>
         )}
+      </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex gap-4 justify-center">
-          <Button variant="outline" onClick={() => window.history.back()}>
-            Voltar
-          </Button>
-          <Button variant="outline">
-            Próximo
+      {loading && <p className="text-center text-muted-foreground">Carregando...</p>}
+      {error && <p className="text-center text-destructive">{error}</p>}
+      {!loading && !error && meanings.length > 0 && (
+        <div className="space-y-4 text-center">
+          <h2 className="text-xl font-semibold">Meanings</h2>
+          {meanings.map((m, i) => (
+            <div key={i} className="space-y-2">
+              <p className="text-sm text-muted-foreground">{m.partOfSpeech}</p>
+              {m.definitions.map((d, j) => (
+                <p key={j} className="text-sm">- {d.definition}</p>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {user && (
+        <div className="text-center">
+          <Button variant={isFavorite ? "secondary" : "default"} onClick={toggleFavorite}>
+            {isFavorite ? "Remover dos favoritos" : "Salvar como favorito"}
           </Button>
         </div>
-
-        {/* Favorite Button */}
-        {user && (
-          <div className="text-center">
-            <Button variant={isFavorite ? "secondary" : "default"} onClick={toggleFavorite} aria-label="Favoritar">
-              {isFavorite ? "Remover dos favoritos" : "Salvar como favorito"}
-            </Button>
-          </div>
-        )}
-      </section>
-    </main>
+      )}
+    </div>
   );
 };
 
