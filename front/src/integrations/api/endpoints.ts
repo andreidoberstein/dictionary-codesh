@@ -8,7 +8,6 @@ export const API_ENDPOINTS = {
     detail: (word: string) => `/entries/en/${word}`,
     favorite: (word: string) => `/entries/en/${word}/favorite`,
     unfavorite: (word: string) => `/entries/en/${word}/unfavorite`,
-    // detail: (id: string) => `/users/${id}`,
   },
   user: {
     profile: "/user/me",

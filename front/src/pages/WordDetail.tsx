@@ -20,10 +20,8 @@ const fetchWord = async (term: string) => {
   try {
     const res = await wordDetail(term);
     const item = res[0];
-    console.log(item)
     const phonetic = item?.phonetic || item?.phonetics?.[0]?.text || item?.phonetics?.[1]?.text;
     const meanings = item?.meanings || [];
-    console.log(phonetic)
     return { phonetic, meanings };
   } catch (error) {
     if (error.response?.data?.message) {
@@ -51,7 +49,6 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
         if (!active) return;
         setPhonetic(phonetic);
         setMeanings(meanings);
-        console.log(phonetic)
       } catch (e) {
         if (!active) return;
         setError(e.message ?? "Erro inesperado");
