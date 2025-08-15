@@ -110,9 +110,7 @@ const Words = () => {
   const handleHistoriesTab = async () => {
     setActiveButton('histories')
     const histories = await userHistories(1, 10);
-    console.log(histories.results)
     const wordsArray = histories.results.map(item => item.word.text)
-    console.log(wordsArray)
     setVisibleWords(wordsArray)
   }
   const handleWordListTab = async () => {

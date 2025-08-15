@@ -27,7 +27,6 @@ export class DictionaryService {
       await this.dictionaryRepository.registerHistory(word, userId);
       return entry;
     } catch (error) {
-      console.error('Erro ao buscar palavra:', error);
       throw new HttpException(
         'Erro ao consultar API externa',
         HttpStatus.INTERNAL_SERVER_ERROR,
