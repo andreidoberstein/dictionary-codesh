@@ -1,10 +1,14 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { PrismaService } from "../../prisma/prisma.service";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
+import { UsersService } from 'src/users/services/user.service';
 
 @Injectable()
 export class DictionaryRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private userService: UsersService,
+  ) {}
 
   async findAll(search?: string, cursor?: string, limitParam?: number) {
     const where = search
@@ -20,12 +24,14 @@ export class DictionaryRepository {
     };
 
     const decodedCursor = cursor
-      ? JSON.parse(Buffer.from(cursor, 'base64').toString('ascii')) as {id: number}
+      ? (JSON.parse(Buffer.from(cursor, 'base64').toString('ascii')) as {
+          id: number;
+        })
       : null;
 
     if (search) {
       const limit = Math.max(limitParam || 10, 1);
-      
+
       const queryOptions: any = {
         ...baseOptions,
         take: limit + 1, // +1 para detectar hasNext
@@ -35,7 +41,7 @@ export class DictionaryRepository {
         queryOptions.cursor = { id: decodedCursor.id };
         queryOptions.skip = 1;
       }
-      
+
       const words = await this.prisma.word.findMany(queryOptions);
 
       let hasNext = false;
@@ -45,13 +51,15 @@ export class DictionaryRepository {
       }
 
       const nextCursor = hasNext
-        ? Buffer.from(JSON.stringify({ id: words[words.length - 1].id })).toString('base64')
+        ? Buffer.from(
+            JSON.stringify({ id: words[words.length - 1].id }),
+          ).toString('base64')
         : null;
 
       const hasPrev = !!decodedCursor;
       const prevCursor = hasPrev
-          ? Buffer.from(JSON.stringify({ id: words[0].id })).toString('base64')
-          : null;
+        ? Buffer.from(JSON.stringify({ id: words[0].id })).toString('base64')
+        : null;
 
       return {
         results: words.map((w) => w.text),
@@ -81,7 +89,7 @@ export class DictionaryRepository {
         id: true,
         text: true,
         createdAt: true,
-      }
+      },
     });
   }
 
@@ -92,13 +100,19 @@ export class DictionaryRepository {
     });
 
     if (!entry) return;
-    
+
+    const historiesWords = await this.userService.getUserHistory(userId, 1, 10);
+
+    if (historiesWords.results.length > 0) {
+      const hasWord = historiesWords.results.some((item) => item.word.text == word);
+      if(hasWord) return
+    }
     const d = await this.prisma.wordHistories.create({
       data: {
         userId: userId,
         wordId: entry.id,
         accessedAt: new Date(),
-      }
+      },
     });
   }
 
@@ -107,7 +121,7 @@ export class DictionaryRepository {
       where: {
         userId_word: { userId, word },
       },
-      update: {}, 
+      update: {},
       create: {
         userId,
         word,
