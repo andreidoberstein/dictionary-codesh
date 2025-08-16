@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 buildCommand = "npm ci && npm run build"
 
 [deploy]
-startCommand = "npm run prisma:migrate:deploy && npm run start:prod"
+startCommand = "sh -c npm run prisma:migrate:deploy && npm run start:prod"
 healthcheckPath = "/health"
 healthcheckTimeout = 100
 
