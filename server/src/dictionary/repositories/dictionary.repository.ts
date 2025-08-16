@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UsersService } from 'src/users/services/user.service';
+import { UsersService } from '../../users/services/user.service';
 
 @Injectable()
 export class DictionaryRepository {
