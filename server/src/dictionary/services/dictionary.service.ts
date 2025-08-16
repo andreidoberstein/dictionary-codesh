@@ -30,14 +30,14 @@ export class DictionaryService {
       await this.dictionaryRepository.registerHistory(word, userId);
       return data;
     } catch (error) {
-      if (error.response?.status === 404) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error?.response?.status === 404) {
         throw new NotFoundException(`Palavra "${word}" não encontrada na API`);
       }
-      console.error('Erro ao consultar API externa:', error.message);
-      throw new HttpException(
-        'Erro ao consultar API externa',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.error('Erro ao consultar API externa:', error?.message);
+      throw new HttpException('Erro ao consultar API externa', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

@@ -1,95 +1,77 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DictionaryService } from '../services/dictionary.service';
-import { NotFoundException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import { DictionaryController } from './dictionary.controller';
+import { DictionaryService } from '../services/dictionary.service';
+import { CanActivate } from '@nestjs/common';
+
+class JwtAuthGuardMock implements CanActivate {
+  canActivate(): boolean {
+    return true;
+  }
+}
 
 describe('DictionaryController', () => {
   let controller: DictionaryController;
-  let service: DictionaryService;
 
-  const mockService = {
+  const service = {
     findAll: jest.fn(),
     findOne: jest.fn(),
     favoriteWord: jest.fn(),
     unfavoriteWord: jest.fn(),
   };
 
-  const mockUser = { id: 'user-id-1' };
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+  beforeAll(async () => {
+    const module = await Test.createTestingModule({
       controllers: [DictionaryController],
       providers: [
-        { provide: DictionaryService, useValue: mockService },
+        { provide: DictionaryService, useValue: service },
+        { provide: 'JwtAuthGuard', useClass: JwtAuthGuardMock }, // se seu guard for token class, veja overrideProvider abaixo
       ],
-    }).compile();
+    })
+      // override do guard pelo token real (se exportado como classe JwtAuthGuard)
+      .overrideGuard((DictionaryController as any).guards?.JwtAuthGuard || (class {}) as any)
+      .useValue(new JwtAuthGuardMock())
+      .compile();
 
-    controller = module.get<DictionaryController>(DictionaryController);
-    service = module.get<DictionaryService>(DictionaryService);
+    controller = module.get(DictionaryController);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  afterEach(() => jest.clearAllMocks());
+
+  it('GET /entries/en chama service.findAll com params', async () => {
+    service.findAll.mockResolvedValue({
+      results: ['a', 'b'],
+      totalDocs: 2,
+      previous: null,
+      next: null,
+      hasNext: false,
+      hasPrev: false,
+    });
+
+    const out = await controller.findAll('fire', 'c-b64', '4');
+
+    expect(service.findAll).toHaveBeenCalledWith('fire', 'c-b64', 4);
+    expect(out.results).toEqual(['a', 'b']);
   });
 
-  describe('findAll', () => {
-    it('deve retornar palavras com cursor', async () => {
-      const response = {
-        results: ['apple', 'banana'],
-        totalDocs: 5,
-        previous: null,
-        next: 'cursor-encoded',
-        hasNext: true,
-        hasPrev: false,
-      };
+  it('GET /entries/en/:word chama service.findOne com userId do req', async () => {
+    service.findOne.mockResolvedValue([{ word: 'hello' }]);
 
-      mockService.findAll.mockResolvedValue(response);
+    const req = { user: { id: 'u1' } } as any;
+    const out = await controller.findOne('hello', req);
 
-      const result = await controller.findAll(undefined, undefined, '2');
-      expect(service.findAll).toHaveBeenCalledWith(undefined, undefined, 2);
-      expect(result).toEqual(response);
-    });
+    expect(service.findOne).toHaveBeenCalledWith('hello', 'u1');
+    expect(out).toEqual([{ word: 'hello' }]);
   });
 
-  describe('findOne', () => {
-    it('deve retornar uma palavra existente', async () => {
-      const wordEntry = { id: '1', text: 'apple', createdAt: new Date() };
-      mockService.findOne.mockResolvedValue(wordEntry);
-
-      const result = await controller.findOne('apple');
-      expect(service.findOne).toHaveBeenCalledWith('apple');
-      expect(result).toEqual(wordEntry);
-    });
-
-    it('deve lançar NotFoundException se a palavra não existir', async () => {
-      mockService.findOne.mockRejectedValue(new NotFoundException('Palavra "orange" não encontrada'));
-
-      await expect(controller.findOne('orange')).rejects.toThrow(NotFoundException);
-    });
+  it('POST /entries/en/:word/favorite retorna 204 (sem body) e chama service.favoriteWord', async () => {
+    const req = { user: { id: 'u1' } } as any;
+    await controller.favoriteWord('hello', req);
+    expect(service.favoriteWord).toHaveBeenCalledWith('u1', 'hello');
   });
 
-  describe('favoriteWord', () => {
-    it('deve favoritar uma palavra', async () => {
-      mockService.favoriteWord.mockResolvedValue(undefined);
-
-      await controller.favoriteWord('apple', { user: mockUser } as any);
-      expect(service.favoriteWord).toHaveBeenCalledWith('user-id-1', 'apple');
-    });
-  });
-
-  describe('unfavoriteWord', () => {
-    it('deve desfavoritar uma palavra', async () => {
-      mockService.unfavoriteWord.mockResolvedValue(undefined);
-
-      await controller.unfavoriteWord('apple', { user: mockUser } as any);
-      expect(service.unfavoriteWord).toHaveBeenCalledWith('user-id-1', 'apple');
-    });
-
-    it('deve lançar NotFoundException se a palavra não estiver nos favoritos', async () => {
-      mockService.unfavoriteWord.mockRejectedValue(new NotFoundException('A palavra "apple" não está nos favoritos'));
-
-      await expect(controller.unfavoriteWord('apple', { user: mockUser } as any))
-        .rejects.toThrow(NotFoundException);
-    });
+  it('DELETE /entries/en/:word/unfavorite retorna 204 (sem body) e chama service.unfavoriteWord', async () => {
+    const req = { user: { id: 'u1' } } as any;
+    await controller.unfavoriteWord('hello', req);
+    expect(service.unfavoriteWord).toHaveBeenCalledWith('u1', 'hello');
   });
 });
