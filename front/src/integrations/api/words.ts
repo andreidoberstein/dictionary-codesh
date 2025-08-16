@@ -3,11 +3,15 @@ import { API_ENDPOINTS } from "./endpoints";
 
 export async function wordsList(search?: string, cursor?: string, limit?: number) {
   const params = new URLSearchParams();
-  if (search) params.append('search', search);
-  if (cursor) params.append('cursor', cursor);
-  if (limit) params.append('limit', limit.toString());
 
-  const { data } = await apiClient.get(`${API_ENDPOINTS.words.list}?${params.toString()}`);
+  if (search && search.trim()) params.append('search', search.trim());
+  if (cursor) params.append('cursor', cursor);
+  if (search && search.trim() && Number.isFinite(limit) && (limit as number) > 0) {
+    params.append("limit", String(limit));
+  }
+  
+  const qs = params.toString();
+  const { data } = await apiClient.get(`${API_ENDPOINTS.words.list}${qs ? `?${qs}` : ''}`);
   return data;
 }
 

@@ -12,53 +12,76 @@ const Words = () => {
   const [limit, setLimit] = useState(4);
   const [allWords, setAllWords] = useState<string[]>([]);
   const [visibleWords, setVisibleWords] = useState<string[]>([]);
+  const [visibleCount, setVisibleCount] = useState(50);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const observerRef = useRef<HTMLDivElement>(null);
-  const [page, setPage] = useState(1);
-  const [hasNext, setHasNext] = useState(false);
-  const [hasPrev, setHasPrev] = useState(false);
   const [activeButton, setActiveButton] = useState('wordList')
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const observerRef = useRef<HTMLDivElement>(null);
+  const pagingRef = useRef(false);
+  const firstPageLoadedRef = useRef(false);
 
-  const fetchWords = async (searchQuery: string, pageNum: number = 1, limitNum: number = 4) => {
+  const fetchWords = async (searchQuery: string, cursor?: string, limit?: number) => {
     if (isLoading) return;
     setIsLoading(true);
 
-    const cursor = pageNum > 1 && visibleWords.length > 0 ? btoa(JSON.stringify({ text: visibleWords[visibleWords.length - 1] })) : '';
-    const data = await wordsList(searchQuery, cursor, limitNum);
-    setVisibleWords(data.results);
-    setPage(data.page);
-    setHasNext(data.hasNext);
-    setHasPrev(data.hasPrev);
-    setIsLoading(false);
+    try {
+      if (!searchQuery) {
+        const data = await wordsList("", undefined, undefined);
+        setAllWords(data.results);
+        setVisibleCount(50);
+        setNextCursor(null);
+        setVisibleWords([]);
+        firstPageLoadedRef.current = true;
+      } else {
+        const effectiveLimit = Number.isFinite(limit) && limit > 0 ? limit : 4;
+        const data = await wordsList(searchQuery, cursor ?? undefined, effectiveLimit);
+        const pageResults = data.results.slice(0, effectiveLimit);
+        const merged = cursor ? [...visibleWords, ...pageResults] : pageResults;
+
+        setVisibleWords(merged);
+        setNextCursor(data.next || null);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     const container = document.getElementById("words-scroll-container");
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNext && !isLoading) {
-          setPage((prev) => prev + 1);
-        }
-      },
-      {
-        root: container, // Importante: observar dentro do container de rolagem
-        threshold: 1.0,
-      }
-    );
+    const observer = new IntersectionObserver(async (entries) => {
+      const e = entries[0];
+      if (!e.isIntersecting) return;
+      if (isLoading) return;
 
-    if (observerRef.current) {
-      observer.observe(observerRef.current);
-    }
+      if (!firstPageLoadedRef.current) return;
+
+      const scrolled = container
+        ? container.scrollTop + container.clientHeight >= container.scrollHeight - 60
+        : false;
+      if (!scrolled) return;
+
+      if (pagingRef.current) return;
+
+      if (!search) {
+        pagingRef.current = true;
+        setVisibleCount((prev) => prev + 50);
+        pagingRef.current = false;
+      } else if (nextCursor) {
+        pagingRef.current = true;
+        await fetchWords(search, nextCursor);
+        pagingRef.current = false;
+      }
+    }, { root: container, threshold: 0.1 });
+
+    if (observerRef.current) observer.observe(observerRef.current);
 
     return () => {
-      if (observerRef.current) {
-        observer.unobserve(observerRef.current);
-      }
+      if (observerRef.current) observer.unobserve(observerRef.current);
     };
-  }, [hasNext, isLoading]);
-
+  }, [search, nextCursor, isLoading, limit]);
+  
   const handleLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newLimit = parseInt(e.target.value) || 4;
     setLimit(newLimit);
@@ -67,25 +90,19 @@ const Words = () => {
     next.set("limit", newLimit.toString());
     setSearchParams(next, { replace: true });
 
-    // Limpa e refaz a busca com o novo limit
     setVisibleWords([]);
-    setPage(1);
-    fetchWords(search, 1, newLimit);
+    setNextCursor(null);
+    firstPageLoadedRef.current = false;
+    fetchWords(search, undefined, newLimit);
   };
 
   useEffect(() => {
-    // Inicializa ou reinicia a busca apenas quando search ou limit mudam
-    if (search || limit) {
-      setVisibleWords([]); // Limpa a lista antes de uma nova busca
-      setPage(1); // Reseta a página
-      fetchWords(search, 1, limit);
-    }
+    setVisibleWords([]);
+    setAllWords([]);
+    setNextCursor(null);
+    firstPageLoadedRef.current = false;
+    fetchWords(search, undefined);
   }, [search, limit]);
-  useEffect(() => {
-  if (page > 1) {
-    fetchWords(search, page, limit);
-  }
-}, [page]);
 
   const onSearch = (value: string) => {
     const next = new URLSearchParams(searchParams);
@@ -97,7 +114,7 @@ const Words = () => {
       next.delete("limit");
     }
     setSearchParams(next, { replace: true });
-    setSearchValue(value); // Atualiza o valor de busca
+    setSearchValue(value);
   };
 
   const handleFavoritesTab = async () => {
@@ -118,7 +135,7 @@ const Words = () => {
   const handleWordListTab = async () => {
     setVisibleWords([])
     setActiveButton('wordList')
-    fetchWords(search, 1, limit)
+    fetchWords(search, undefined)
   }
 
   return (
@@ -202,7 +219,7 @@ const Words = () => {
             className="h-[400px] overflow-y-auto border rounded-md p-2"
           >
             <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-              {visibleWords.map((w) => (
+              {(search ? visibleWords : allWords.slice(0, visibleCount)).map((w) => (                
                 <button
                   key={w}
                   className="p-3 text-center border rounded-md hover:bg-accent transition-colors text-sm"
@@ -213,6 +230,10 @@ const Words = () => {
                 </button>
               ))}
             </div>
+            <div ref={observerRef} className="h-4" />
+            {isLoading && (
+              <div className="py-2 text-center text-sm">Carregando...</div>
+            )}
           </div>
 
         </div>

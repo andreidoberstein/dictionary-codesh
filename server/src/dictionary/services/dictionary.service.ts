@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { DictionaryRepository } from "../repositories/dictionary.repository";
-import { privateDecrypt } from "crypto";
 import { HttpService } from "@nestjs/axios";
 
 @Injectable()
@@ -21,11 +20,9 @@ export class DictionaryService {
       .toPromise();
 
       const data = response?.data
-      // Caso a API retorne o formato de erro dela
       if (Array.isArray(data) === false && data?.title === 'No Definitions Found') {
         throw new NotFoundException(`Palavra "${word}" não encontrada`);
       }
-      // Se o retorno for vazio ou inválido
       if (!data || !Array.isArray(data)) {
         throw new NotFoundException(`Palavra "${word}" não encontrada`);
       }

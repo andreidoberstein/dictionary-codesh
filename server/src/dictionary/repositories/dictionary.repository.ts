@@ -7,59 +7,70 @@ export class DictionaryRepository {
   constructor(private prisma: PrismaService) {}
 
   async findAll(search?: string, cursor?: string, limitParam?: number) {
-    const limit = search ? Math.max(limitParam || 10, 1) : undefined;
-
     const where = search
       ? { text: { contains: search, mode: Prisma.QueryMode.insensitive } }
       : {};
 
     const totalDocs = await this.prisma.word.count({ where });
 
-    // Decodifica cursor se existir
-    const decodedCursor = cursor
-      ? JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))
-      : null;
-
-    const queryOptions: any = {
+    const baseOptions: any = {
       where,
-      select: { text: true },
-      orderBy: search ? { text: 'asc' } : undefined,
+      select: { id: true, text: true },
+      orderBy: [{ text: 'asc' }, { id: 'asc' }],
     };
 
-    if (limit) {
-      queryOptions.take = limit + 1; // +1 para saber se há próximo
-    }
-
-    if (decodedCursor) {
-      queryOptions.cursor = { text: decodedCursor.text };
-      queryOptions.skip = 1; // Pula o registro do cursor
-    }
-
-    const words = await this.prisma.word.findMany(queryOptions);
-
-    let hasNext = false;
-    let hasPrev = !!decodedCursor;
-
-    if (limit && words.length > limit) {
-      hasNext = true;
-      words.pop(); // Remove o extra
-    }
-
-    const nextCursor = hasNext
-      ? Buffer.from(JSON.stringify({ text: words[words.length - 1].text })).toString('base64')
+    const decodedCursor = cursor
+      ? JSON.parse(Buffer.from(cursor, 'base64').toString('ascii')) as {id: number}
       : null;
 
-    const prevCursor = hasPrev
-      ? Buffer.from(JSON.stringify({ text: words[0].text })).toString('base64')
-      : null;
+    if (search) {
+      const limit = Math.max(limitParam || 10, 1);
+      
+      const queryOptions: any = {
+        ...baseOptions,
+        take: limit + 1, // +1 para detectar hasNext
+      };
 
+      if (decodedCursor) {
+        queryOptions.cursor = { id: decodedCursor.id };
+        queryOptions.skip = 1;
+      }
+      
+      const words = await this.prisma.word.findMany(queryOptions);
+
+      let hasNext = false;
+      if (words.length > limit) {
+        hasNext = true;
+        words.pop(); // limita ao 'limit'
+      }
+
+      const nextCursor = hasNext
+        ? Buffer.from(JSON.stringify({ id: words[words.length - 1].id })).toString('base64')
+        : null;
+
+      const hasPrev = !!decodedCursor;
+      const prevCursor = hasPrev
+          ? Buffer.from(JSON.stringify({ id: words[0].id })).toString('base64')
+          : null;
+
+      return {
+        results: words.map((w) => w.text),
+        totalDocs,
+        previous: prevCursor,
+        next: nextCursor,
+        hasNext,
+        hasPrev,
+      };
+    }
+
+    const words = await this.prisma.word.findMany(baseOptions);
     return {
       results: words.map((w) => w.text),
       totalDocs,
-      previous: prevCursor,
-      next: nextCursor,
-      hasNext,
-      hasPrev,
+      previous: null,
+      next: null,
+      hasNext: false,
+      hasPrev: false,
     };
   }
 
