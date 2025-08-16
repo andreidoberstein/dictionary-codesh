@@ -1,12 +1,16 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { DictionaryRepository } from "../repositories/dictionary.repository";
 import { HttpService } from "@nestjs/axios";
+import { RedisService } from "src/redis/redis.service";
 
 @Injectable()
 export class DictionaryService {
+  private readonly WORD_TTL_SECONDS = 60 * 60 * 24;
+
   constructor(
     private readonly dictionaryRepository: DictionaryRepository,
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
+    private readonly redis: RedisService,
   ) {}
 
   async findAll(search?: string, cursor?: string, limit?: number) {
@@ -14,6 +18,21 @@ export class DictionaryService {
   }
 
   async findOne(word: string, userId: string) {
+    const redisClient = this.redis.getClient();
+    const cacheKey = `dict:word:${word.toLowerCase()}`;
+
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      // marca HIT
+      try {
+        // nem todo contexto tem response (ex: unit test). Verifique.
+        // quando tem, setamos o header:
+        const res = (global as any).__nestHttpResponse__?.();
+        // ignore se você não usa esse “hack”; abaixo vou mostrar um jeito via interceptor de cache
+      } catch {}
+      return parsed; // já é o corpo esperado
+    }
     try {
       const response = await this.httpService
       .get(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`)
@@ -26,6 +45,8 @@ export class DictionaryService {
       if (!data || !Array.isArray(data)) {
         throw new NotFoundException(`Palavra "${word}" não encontrada`);
       }
+
+      await redisClient.set(cacheKey, JSON.stringify(data), 'EX', this.WORD_TTL_SECONDS);
 
       await this.dictionaryRepository.registerHistory(word, userId);
       return data;

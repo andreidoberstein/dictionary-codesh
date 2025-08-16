@@ -8,11 +8,13 @@ import {
   Query,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { DictionaryService } from '../services/dictionary.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import type { RequestWithUser } from '../../common/types/express';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { RedisCache } from '../../common/interceptors/redis-cache.interceptor';
 
 @ApiTags('Dictionary')
 @Controller('entries')
@@ -22,6 +24,7 @@ export class DictionaryController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('en')
+  @UseInterceptors(RedisCache({ ttlSeconds: 60, keyPrefix: 'dict:list' }))
   @ApiOperation({ summary: 'Listar palavras (opcionalmente filtradas por search)' })
   @ApiQuery({ name: 'search', required: false, example: 'apple' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
@@ -45,6 +48,7 @@ export class DictionaryController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('en/:word')
+  @UseInterceptors(RedisCache({ ttlSeconds: 86400, keyPrefix: 'dict:word' }))
   @ApiOperation({ summary: 'Buscar uma palavra específica' })
   @ApiResponse({ status: 200, description: 'Palavra retornada com sucesso.' })
   @ApiResponse({ status: 204, description: 'Palavra não encontrada.' })

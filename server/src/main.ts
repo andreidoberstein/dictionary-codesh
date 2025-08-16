@@ -3,12 +3,14 @@ import { AppModule } from './app.module';
 import { HttpErrorFilter } from './common/filters/http-error.filter';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ResponseTimeInterceptor } from './common/interceptors/response-time.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalFilters(new HttpErrorFilter());  
   app.useGlobalInterceptors(new TransformResponseInterceptor());
+  app.useGlobalInterceptors(new ResponseTimeInterceptor());
 
   const config = new DocumentBuilder()
     .setTitle('Dictionary challenge')
