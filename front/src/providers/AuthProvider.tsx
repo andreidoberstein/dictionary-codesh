@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { jwtDecode } from 'jwt-decode';
 
 interface AuthContextType {
   user: any | null;
@@ -15,15 +16,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const ignore = false;
-    (async () => {
-      
-      
-    })();
+    const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
 
-    (async () => {
+        if (decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem("token");
+          setUser(null);
+          window.location.href = "/login";
+        } else {
+          setUser({ token, ...decoded });
+        }
+      } catch (e) {
+        localStorage.removeItem("token");
+        setUser(null);
+        window.location.href = "/login";
+      }
+    }
 
-    })();
+    setLoading(false);
   }, []);
 
   const signIn: AuthContextType["signIn"] = async (email, password) => {

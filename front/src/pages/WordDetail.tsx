@@ -3,7 +3,8 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/lib/getSupabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { favoriteWord, wordDetail } from "@/integrations/api/words";
+import { favoriteWord, isWordFavorited, unfavoriteWord, userFavorites, wordDetail } from "@/integrations/api/words";
+import { toast } from "sonner";
 
 interface Meaning {
   partOfSpeech: string;
@@ -38,6 +39,27 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
   const [meanings, setMeanings] = useState<Meaning[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
   const { user } = useAuth();
+  const [favLoading, setFavLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      if (!user || !term) {
+        setIsFavorite(false);
+        return;
+      }
+      try {
+        const fav = await userFavorites(1,10);
+        console.log(fav)
+        const hasWord = fav.results.some(item => item.text == term)
+        if (active) setIsFavorite(hasWord);
+      } catch (e) {
+        if (active) setIsFavorite(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, [term, user]);
 
   useEffect(() => {
     let active = true;
@@ -61,8 +83,26 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
 
   const toggleFavorite = async () => {
     if (!user) return;
-    await favoriteWord(term);
-  };
+    
+    setFavLoading(true);
+    // otimismo: aplica local e reverte em erro
+    const previous = isFavorite;
+    setIsFavorite(!previous);
+    try {
+      if (previous) {
+        await unfavoriteWord(term);
+        toast.success(`Palavra "${term}" removida dos favoritos`, { id: `fav-${term}` });
+      } else {
+        await favoriteWord(term);
+        toast.success(`Palavra "${term}" salva nos favoritos`, { id: `fav-${term}` });
+      }
+    } catch (e) {
+      setIsFavorite(previous); // rollback
+      // toast.error("Não foi possível atualizar favoritos");
+    } finally {
+      setFavLoading(false);
+    }
+  }
 
   const goNext = () => {
     const idx = allWords.indexOf(term);
@@ -125,9 +165,20 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
         </div>
       )}
 
-      {user && (
+      {/* {user && (
         <div className="text-center">
           <Button variant={isFavorite ? "secondary" : "default"} onClick={toggleFavorite}>
+            {isFavorite ? "Remover dos favoritos" : "Salvar como favorito"}
+          </Button>
+        </div>  bceae5ad-6e4c-4c76-9a77-442a65b82b8e
+      )} */}
+      {user && (
+        <div className="text-center">
+          <Button
+            variant={isFavorite ? "secondary" : "default"}
+            onClick={toggleFavorite}
+            disabled={favLoading}
+          >
             {isFavorite ? "Remover dos favoritos" : "Salvar como favorito"}
           </Button>
         </div>
