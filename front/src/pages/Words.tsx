@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Input } from "@/components/ui/input";
-import { userFavorites, userHistories, wordsList } from "@/integrations/api/words";
+import { favoriteWord, userFavorites, userHistories, wordsList } from "@/integrations/api/words";
 import WordDetail from "./WordDetail";
 
 const Words = () => {
@@ -117,26 +117,47 @@ const Words = () => {
     setSearchValue(value);
   };
 
-  const handleFavoritesTab = async () => {
-    setVisibleWords([])
-    setActiveButton('favorites')
-    const favorites = await userFavorites(1, 10);
-    const wordsArray = favorites.results.map(item => item.word)
-    setVisibleWords(wordsArray)
+  const handleFavoritesTab = async () => {    
+    setActiveButton('favorites');
+    setNextCursor(null);
+    firstPageLoadedRef.current = false; 
+    setVisibleCount(50);                 
+
+    try {
+      const favorites = await userFavorites(1, 10);
+      const wordsArray = favorites.results.map((item) => item.word);
+      setVisibleWords(wordsArray);
+    } catch (e) {
+      console.error(e);
+      setVisibleWords([]); 
+    }
   }
   
   const handleHistoriesTab = async () => {
-    setVisibleWords([])
-    setActiveButton('histories')
-    const histories = await userHistories(1, 10);
-    const wordsArray = histories.results.map(item => item.word.text)
-    setVisibleWords(wordsArray)
+    setActiveButton('histories');
+    setNextCursor(null);
+    firstPageLoadedRef.current = false; 
+    setVisibleCount(50);                 
+
+    try {
+      const histories = await userHistories(1, 10);
+      const wordsArray = histories.results.map((item) => item.word.text);
+      setVisibleWords(wordsArray);
+    } catch (e) {
+      console.error(e);
+      setVisibleWords([]); // fallback
+    }
   }
+  
   const handleWordListTab = async () => {
     setVisibleWords([])
     setActiveButton('wordList')
     fetchWords(search, undefined)
   }
+
+  const itemsToShow = activeButton === 'wordList'
+    ? (search ? visibleWords : allWords.slice(0, visibleCount))
+    : visibleWords; 
 
   return (
     <main className="container mx-auto px-4 py-4">
@@ -219,7 +240,8 @@ const Words = () => {
             className="h-[400px] overflow-y-auto border rounded-md p-2"
           >
             <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-              {(search ? visibleWords : allWords.slice(0, visibleCount)).map((w) => (                
+              {/* {(search ? visibleWords : allWords.slice(0, visibleCount)).map((w) => (                 */}
+              {itemsToShow.map((w) => (
                 <button
                   key={w}
                   className="p-3 text-center border rounded-md hover:bg-accent transition-colors text-sm"

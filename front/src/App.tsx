@@ -22,7 +22,13 @@ const App = () => (
       <TooltipProvider>
         <AuthProvider>
           <Toaster />
-          <Sonner />
+          <Sonner 
+            position="top-right"
+            theme="system"         
+            richColors                     
+            expand
+            duration={2500}     
+          />
           <BrowserRouter>
             <Header />
             <Routes>
@@ -53,6 +59,7 @@ const App = () => (
       </TooltipProvider>
     </HelmetProvider>
   </QueryClientProvider>
+  
 );
 
 export default App;

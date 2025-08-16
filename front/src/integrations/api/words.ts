@@ -26,7 +26,7 @@ export async function favoriteWord(word: string) {
 }
 
 export async function unfavoriteWord(word: string) {
-  const { data } = await apiClient.post(API_ENDPOINTS.words.unfavorite(word));
+  const { data } = await apiClient.delete(API_ENDPOINTS.words.unfavorite(word));
   return data;
 }
 
@@ -37,6 +37,16 @@ export async function userFavorites(page: number = 1, limit: number = 10) {
 
   const { data } = await apiClient.get(`${API_ENDPOINTS.user.favorites}?${params.toString()}`);
   return data;
+}
+
+export async function isWordFavorited(word: string): Promise<boolean> {
+  try {
+    await apiClient.head(`${API_ENDPOINTS}/${encodeURIComponent(word)}/favorite`);
+    return true;
+  } catch (err) {
+    if (err?.response?.status === 404) return false;
+    throw err; // outros erros propaga
+  }
 }
 
 export async function userHistories(page: number = 1, limit: number = 10) {
