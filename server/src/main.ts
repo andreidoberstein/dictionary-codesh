@@ -30,7 +30,8 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type','Authorization','X-Requested-With'],
   });
   
-  const port = parseInt(process.env.PORT || '3000', 10);
-  await app.listen(port, '0.0.0.0');
+  const PORT = Number(process.env.PORT) || 3000;
+  await app.listen(PORT, '0.0.0.0');
+  Logger.log(`🚀 HTTP ouvindo em 0.0.0.0:${PORT}`, 'Bootstrap');
 }
 bootstrap();
