@@ -11,7 +11,24 @@ Este repositório contém o **teste técnico (Coodesh)** de um Dicionário de Pa
 
 ---
 
+## 🌿 Branches & ambientes
+
+- **dev**: versão para **testar localmente** (desenvolvimento).
+- **main**: branch de **deploy/produção**.
+
+**Comandos úteis**
+
+```bash
+git checkout dev   # trabalhar/testar local
+# ...
+git checkout main  # acompanhar versão de produção
+```
+
+---
+
 ## 🌳 Estrutura
+
+
 
 ```
 .
