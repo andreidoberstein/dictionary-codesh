@@ -4,6 +4,7 @@ import { HttpErrorFilter } from './common/filters/http-error.filter';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ResponseTimeInterceptor } from './common/interceptors/response-time.interceptor';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
