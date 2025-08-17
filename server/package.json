@@ -21,7 +21,8 @@
     "import:words": "ts-node src/scripts/import-words.ts",
     "prisma:gen": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prestart:prod": "prisma generate"
+    "prestart:prod": "prisma generate",
+    "start:railway": "npm run prisma:migrate:deploy && npm run start:prod"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
