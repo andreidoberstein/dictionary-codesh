@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password
     }
-    const res = await fetch(`http://localhost:3030/auth/signin`, {
+    const res = await fetch(`http://localhost:3000/auth/signin`, {
       method: "POST",
       headers: { "Content-Type": "application/json"},
       body: JSON.stringify(data)
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password
     }
-    const res = await fetch(`http://localhost:3030/auth/signup`, {
+    const res = await fetch(`http://localhost:3000/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json"},
       body: JSON.stringify(data)
