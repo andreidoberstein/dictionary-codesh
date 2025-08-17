@@ -15,6 +15,7 @@ Este repositório contém o **teste técnico (Coodesh)** de um Dicionário de Pa
 
 - **dev**: versão para **testar localmente** (desenvolvimento).
 - **main**: branch de **deploy/produção**.
+[`https://dictionary-codesh-oo8155lnd-andreivupts-projects.vercel.app/login`]()
 
 **Comandos úteis**
 
