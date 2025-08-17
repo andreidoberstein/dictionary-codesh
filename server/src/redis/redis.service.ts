@@ -6,7 +6,7 @@ export class RedisService implements OnModuleDestroy {
   private client: RedisClient;
 
   constructor() {
-    this.client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+    this.client = new Redis(process.env.REDIS_URL + "?family=0" || 'redis://localhost:6379', {
     });
   }
 
