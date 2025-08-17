@@ -1,4 +1,3 @@
-# server/Dockerfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
@@ -14,6 +13,11 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+
 EXPOSE 3000
-# migra e inicia
-CMD sh -c "npx prisma migrate deploy && node dist/main.js"
+
+CMD sh -c '\
+for i in 1 2 3 4 5; do \
+  npx prisma migrate deploy && break || { echo "[migrate] falhou, retry em 5s"; sleep 5; }; \
+done; \
+node dist/main.js'
