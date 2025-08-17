@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { DictionaryRepository } from "../repositories/dictionary.repository";
 import { HttpService } from "@nestjs/axios";
-import { RedisService } from "src/redis/redis.service";
+import { RedisService } from "../../redis/redis.service";
 
 @Injectable()
 export class DictionaryService {

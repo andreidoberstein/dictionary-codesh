@@ -9,7 +9,29 @@ import { Logger } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalFilters(new HttpErrorFilter());  
+  app.enableCors({
+    origin: (origin, cb) => cb(null, true), // DEV: aceita qualquer origem (restrinja depois!)
+    credentials: true,
+    methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+    allowedHeaders: ['Content-Type','Authorization','X-Requested-With'],
+    optionsSuccessStatus: 204,
+  });
+
+  // Garante headers de CORS até em 404/500 e responde preflight OPTIONS
+  app.use((req, res, next) => {
+    const origin = req.headers.origin as string | undefined;
+    if (origin) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Vary', 'Origin');
+    }
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+    next();
+  });
+  app.useGlobalFilters(new HttpErrorFilter());
   app.useGlobalInterceptors(new TransformResponseInterceptor());
   app.useGlobalInterceptors(new ResponseTimeInterceptor());
 
@@ -21,16 +43,8 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document); 
-  app.enableCors({
-    origin: [
-      'http://localhost:8080',
-      'https://dictionary-codesh.vercel.app'
-    ],
-    methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
-    allowedHeaders: ['Content-Type','Authorization','X-Requested-With'],
-  });
-  
+  SwaggerModule.setup('api', app, document);
+
   const PORT = Number(process.env.PORT) || 3000;
   await app.listen(PORT, '0.0.0.0');
   Logger.log(`🚀 HTTP ouvindo em 0.0.0.0:${PORT}`, 'Bootstrap');
