@@ -18,7 +18,7 @@ RUN npx prisma generate
 
 COPY --from=builder /app/dist ./dist
 
-EXPOSE 3000
+EXPOSE 3030
 
 CMD sh -c '\
 for i in 1 2 3 4 5; do \

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.API_URL || "http://localhost:3030",
+  baseURL: import.meta.env.API_URL || "https://dictionary-codesh-production.up.railway.app",
   timeout: 10000,
   withCredentials: true,
 });
