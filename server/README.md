@@ -2,36 +2,30 @@
 
 API REST para um dicionário de palavras em inglês, desenvolvida com **NestJS**, **Prisma**, **Docker** e autenticação **JWT**. A aplicação oferece **login**, **lista com busca e paginação por cursor (suporte a scroll infinito no front)**, **histórico de palavras visualizadas**, **favoritos** e **proxy** para a **Free Dictionary API**, com documentação automática via **Swagger**.
 
----
-
-## ✨ Diferenciais implementados
-
-* **Swagger** – documentação automática e interativa
-* **Unit Tests** – Jest + Supertest (unit e e2e)
-* **Docker** – containerização (dev e deploy)
-* **Deploy na Railway** – `prisma migrate deploy` + healthcheck
-* **Utilização de cursores** – paginação estável para lista de palavras
-* **Cache com Redis (MISS/HIT)** – respostas do detalhe da palavra armazenadas
-
-> Cabeçalho de cache:
->
-> * `X-Cache: HIT` quando a resposta veio do Redis
-> * `X-Cache: MISS` quando foi buscada na fonte externa e registrada no cache
 
 ---
 
-## ✅ Requisições obrigatórias atendidas
+## 📋 Checklist de Requisitos
 
-* **Login**
-* **Visualizar lista com scroll infinito** (backend com **cursor**; front consome com `cursor` → `next`)
-* **Guardar histórico de palavras visualizadas**
-* **Visualizar o histórico de palavras já visualizadas**
-* **Guardar uma palavra como favorita**
-* **Remover uma palavra favorita**
-* **API faz proxy da Free Dictionary** (detalhe da palavra)
-* **Rotas pré-definidas** (listadas abaixo)
+### Requisitos obrigatórios
+- [x] Como usuário, devo ser capaz de realizar login com usuário e senha
+- [x] Como usuário, devo ser capaz de visualizar a lista de palavras do dicionário
+- [x] Como usuário, devo ser capaz de guardar no histórico palavras já visualizadas
+- [x] Como usuário, devo ser capaz de visualizar o histórico de palavras já visualizadas
+- [x] Como usuário, deve ser capaz de guardar uma palavra como favorita
+- [x] Como usuário, deve ser capaz de apagar uma palavra favorita
+- [x] Internamente, a API deve fazer proxy da API Free Dictionary, pois assim o front irá acessar somente a sua API
 
 ---
+
+### Requisitos diferenciais
+- [x] Diferencial 1 – Descrever a documentação da API utilizando o conceito de **OpenAPI 3.0**
+- [x] Diferencial 2 – Escrever **Unit Tests** para os endpoints da API
+- [x] Diferencial 3 – Configurar **Docker** no projeto para facilitar o deploy
+- [x] Diferencial 4 – **Deploy** em servidor (com ou sem CI)
+- [x] Diferencial 5 – Implementar paginação com **cursores** em vez de **page/limit**
+- [x] Diferencial 6 – **Cache** das requisições ao Free Dictionary (HIT/MISS)
+
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -255,6 +249,8 @@ model WordHistories {
 
   word    Word @relation(fields: [wordId], references: [id])
   user    User @relation(fields: [userId], references: [id])
+
+  @@map("histories")
 }
 
 model Favorite {
@@ -266,6 +262,8 @@ model Favorite {
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, word])
+
+  @@map("favorities")
 }
 
 ```
@@ -299,28 +297,24 @@ model Favorite {
 * **H1:** `english.txt`
 * **H2:** Detalhes (definições/fonética) via **Free Dictionary API** em tempo de requisição.
 * **H3:** **Cursor pagination** para palavras e **page-based** para recursos do usuário.
-* **H4:** JWT **Bearer** para MVP; cookies HttpOnly opcional.
+* **H4:** JWT **Bearer**.
 
 ### Experimentos e aprendizados
 
-- Utilização da documentação do framework:** consulta sistemática às docs oficiais do **NestJS** (módulos, providers, guards, interceptors, pipes e `@nestjs/swagger`), **Prisma** (migrations, índices únicos, paginação) e **Swagger/OpenAPI** para alinhar contratos. Principais decisões foram justificadas com base nessas referências.
-- Estudo sobre utilização e aplicação de cursor:** definição de **cursor pagination** para `/entries/en` com ordenação estável por `text ASC`, geração de token **base64** contendo a última posição e suporte a `previous/next`. Direciona o **scroll infinito** no frontend.
-- Aplicação de cache com Redis e ioredis:** implementação de cache para **detalhe da palavra** utilizando **ioredis**. Convenção de chaves `word:detail:{term}`, TTL configurável, invalidação simples e cabeçalho `X-Cache: HIT|MISS`. Fallback seguro quando `REDIS_URL` ausente.
-- Aprofundamento em testes unitários:** estratégia de **mocks** para a Free Dictionary API, testes de services e controllers com **Jest**, e testes **e2e** com **Supertest** cobrindo autenticação, lista por cursor e cache (assert no `X-Cache`).
-- Desafios com soluções para o deploy:** ajustes no **Railway** (variáveis de ambiente como `DATABASE_URL`, comando `prisma migrate deploy`, healthcheck em `/health`) e no ambiente **Docker/WSL2** (volumes, `wsl --shutdown`, rebuild). Documentado no README para reprodutibilidade.
+- Utilização da documentação do framework:**consulta sistemática às docs oficiais do **NestJS** (módulos, providers, guards, interceptors, pipes e `@nestjs/swagger`), **Prisma** (migrations, índices únicos, paginação) e **Swagger/OpenAPI** para alinhar contratos. Principais decisões foram justificadas com base nessas referências.
+- Estudo sobre utilização e aplicação de cursor:**definição de **cursor pagination** para `/entries/en` com ordenação estável por `text ASC`, geração de token **base64** contendo a última posição e suporte a `previous/next`. Direciona o **scroll infinito** no frontend.
+- Aplicação de cache com Redis e ioredis:**implementação de cache para **detalhe da palavra** utilizando **ioredis**. Convenção de chaves `word:detail:{term}`, TTL configurável, invalidação simples e cabeçalho `X-Cache: HIT|MISS`. Fallback seguro quando `REDIS_URL` ausente.
+- Aprofundamento em testes unitários:**estratégia de **mocks** para a Free Dictionary API, testes de services e controllers com **Jest**, e testes **e2e** com **Supertest** cobrindo autenticação, lista por cursor e cache (assert no `X-Cache`).
+- Desafios com soluções para o deploy:**ajustes no **Railway** (variáveis de ambiente como `DATABASE_URL`, comando `prisma migrate deploy`, healthcheck em `/health`) e no ambiente **Docker/WSL2** (volumes, `wsl --shutdown`, rebuild). Documentado no README para reprodutibilidade.
 
 ### Decisões de arquitetura
 
 * Monólito modular NestJS (Controller → Service → Repository) + DTOs.
-* Prisma/PostgreSQL; índices em `Word.text`.
+* Prisma/PostgreSQL
 * Provider HTTP para Free Dictionary, desacoplado.
 * Erros 200/204/400 com mensagens humanizadas.
 
 ---
-
+## 📌 Referência
 
 >  This is a challenge by [Coodesh](https://coodesh.com/)
-
-## 💡 Autor
-
-Created by **Andrei Doberstein** 💻
