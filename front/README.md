@@ -4,15 +4,23 @@ Aplicação **React + TypeScript** para consumir a **Dictionary API**. Oferece *
 
 ---
 
-## ✨ Diferenciais implementados
+## 📋 Checklist de Requisitos
 
-* **Scroll infinito com cursor** (consumo de `next`/`previous` da API)
-* **Proxy de definições** via backend (Free Dictionary API) + exibição de **HIT/MISS** do cache quando fornecido
-* **Autenticação JWT** com interceptors de requisição
-* **UX**: toasts/feedbacks, loading states e empty states
-* **Docker** para build/serve estático (Nginx)
-* **Deploy** compatível com Railway/Vercel/Netlify (build estático)
-* **Testes** (sugerido: Vitest + React Testing Library)
+### Requisitos obrigatórios
+- [x] Como usuário, devo ser capaz de realizar login com usuário e senha
+- [x] Como usuário, devo ser capaz de visualizar uma lista de palavras com rolagem infinita
+- [x] Como usuário, devo ser capaz de visualizar uma palavra, significados e a fonética
+- [x] Como usuário, devo ser capaz de salvar a palavra como favorito
+- [x] Como usuário, devo ser capaz de remover a palavra como favorito
+- [x] omo usuário, devo ser capaz de visitar uma lista com as palavras que já vi anteriormente
+- [x] Seguir o wireframe para a página de listagem dos dados.
+
+### Requisitos diferenciais
+- [ ] Escrever Unit Tests ou E2E Test. Escolher a melhor abordagem e biblioteca;
+- [x] Configurar Docker no Projeto para facilitar o Deploy da equipe de DevOps;
+- [x] Colocar na URL os parametros utilizados na busca, para que seja possível compartilhar a URL;
+- [ ] Implementar SSR no projeto;
+- [ ] Implementar o projeto com PWA.
 
 ---
 
