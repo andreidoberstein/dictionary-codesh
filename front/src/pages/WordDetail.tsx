@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { getSupabase } from "@/lib/getSupabase";
 import { useAuth } from "@/providers/AuthProvider";
-import { favoriteWord, isWordFavorited, unfavoriteWord, userFavorites, wordDetail } from "@/integrations/api/words";
+import { favoriteWord, unfavoriteWord, userFavorites, wordDetail } from "@/integrations/api/words";
 import { toast } from "sonner";
 
 interface Meaning {
@@ -13,22 +12,25 @@ interface Meaning {
 
 interface WordDetailProps {
   term: string;
-  allWords?: string[]; // Optional prop with default
-  onSelectWord?: (word: string) => void; // Optional callback
+  allWords?: string[];
+  onSelectWord?: (word: string) => void;
 }
 
 const fetchWord = async (term: string) => {
   try {
     const res = await wordDetail(term);
     const item = res[0];
-    const phonetic = item?.phonetic || item?.phonetics?.[0]?.text || item?.phonetics?.[1]?.text;
+    const phonetic =
+      item?.phonetic ||
+      item?.phonetics?.[0]?.text ||
+      item?.phonetics?.[1]?.text;
     const meanings = item?.meanings || [];
     return { phonetic, meanings };
   } catch (error) {
     if (error.response?.data?.message) {
       throw new Error(error.response.data.message);
     }
-    throw new Error('Erro ao buscar a palavra');
+    throw new Error("Erro ao buscar a palavra");
   }
 };
 
@@ -43,21 +45,22 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
 
   useEffect(() => {
     let active = true;
-    async function load() {
+    async function loadFav() {
       if (!user || !term) {
         setIsFavorite(false);
         return;
       }
       try {
-        const fav = await userFavorites(1,10);
-        console.log(fav)
-        const hasWord = fav.results.some(item => item.text == term)
+        const fav = await userFavorites(1, 10);
+        // [A6] Tolerante ao formato (text | word)
+        const hasWord =
+          fav?.results?.some((item) => (item?.text ?? item?.word) === term) ?? false;
         if (active) setIsFavorite(hasWord);
-      } catch (e) {
+      } catch {
         if (active) setIsFavorite(false);
       }
     }
-    load();
+    loadFav();
     return () => { active = false; };
   }, [term, user]);
 
@@ -78,14 +81,12 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
         if (active) setLoading(false);
       }
     })();
-    return () => { active = false };
+    return () => { active = false; };
   }, [term]);
 
   const toggleFavorite = async () => {
     if (!user) return;
-    
     setFavLoading(true);
-    // otimismo: aplica local e reverte em erro
     const previous = isFavorite;
     setIsFavorite(!previous);
     try {
@@ -96,26 +97,21 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
         await favoriteWord(term);
         toast.success(`Palavra "${term}" salva nos favoritos`, { id: `fav-${term}` });
       }
-    } catch (e) {
-      setIsFavorite(previous); // rollback
-      // toast.error("Não foi possível atualizar favoritos");
+    } catch {
+      setIsFavorite(previous);
     } finally {
       setFavLoading(false);
     }
-  }
+  };
 
   const goNext = () => {
     const idx = allWords.indexOf(term);
-    if (idx >= 0 && idx < allWords.length - 1) {
-      onSelectWord(allWords[idx + 1]);
-    }
+    if (idx >= 0 && idx < allWords.length - 1) onSelectWord(allWords[idx + 1]);
   };
 
   const goPrev = () => {
     const idx = allWords.indexOf(term);
-    if (idx > 0) {
-      onSelectWord(allWords[idx - 1]);
-    }
+    if (idx > 0) onSelectWord(allWords[idx - 1]);
   };
 
   const playPhonetic = () => {
@@ -126,64 +122,78 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
   };
 
   const title = useMemo(() => `${term} — Significados e fonética`, [term]);
+  const isFirst = allWords.indexOf(term) === 0;
+  const isLast = allWords.indexOf(term) === allWords.length - 1;
 
   return (
-    <div className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={`Veja significados e fonética de ${term}. Salve como favorito.`} />
       </Helmet>
 
-      <div className="flex justify-between">
-        <Button onClick={goPrev} disabled={allWords.indexOf(term) === 0}>← Anterior</Button>
-        <Button onClick={goNext} disabled={allWords.indexOf(term) === allWords.length - 1}>Próxima →</Button>
+      {/* [A1] Barra de navegação sticky no mobile */}
+      <div className="sticky top-0 z-20 -mx-3 sm:mx-0 px-3 py-2 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between gap-2">
+        <Button size="sm" onClick={goPrev} disabled={isFirst} aria-label="Anterior">
+          ← Anterior
+        </Button>
+        <Button size="sm" onClick={goNext} disabled={isLast} aria-label="Próxima">
+          Próxima →
+        </Button>
       </div>
 
-      <div className="bg-gradient-to-br from-purple-200 to-pink-200 dark:from-purple-800 dark:to-pink-800 rounded-lg p-6 text-center">
-        <h1 className="text-3xl font-bold mb-2">{term}</h1>
+      {/* [A2] Tipografia/padding responsivos */}
+      <div className="bg-gradient-to-br from-purple-200 to-pink-200 dark:from-purple-800 dark:to-pink-800 rounded-lg p-4 sm:p-6 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 break-words">{term}</h1>
         {phonetic && (
           <div className="flex flex-col items-center">
-            <p className="text-lg">{phonetic}</p>
-            <Button className="mt-2" onClick={playPhonetic}>▶ Ouvir</Button>
+            <p className="text-base sm:text-lg">{phonetic}</p>
+            {/* [A3] Botão menor no mobile */}
+            <Button className="mt-2" size="sm" onClick={playPhonetic}>▶ Ouvir</Button>
           </div>
         )}
       </div>
 
-      {loading && <p className="text-center text-muted-foreground">Carregando...</p>}
-      {error && <p className="text-center text-destructive">{error}</p>}
+      {/* [A4] Acessibilidade de estado */}
+      {loading && (
+        <p className="text-center text-muted-foreground" aria-live="polite">
+          Carregando...
+        </p>
+      )}
+      {error && (
+        <p className="text-center text-destructive" aria-live="assertive">
+          {error}
+        </p>
+      )}
+
       {!loading && !error && meanings.length > 0 && (
-        <div className="space-y-4 text-center">
-          <h2 className="text-xl font-semibold">Meanings</h2>
+        <div className="space-y-4 sm:space-y-5 text-left">
+          <h2 className="text-lg sm:text-xl font-semibold">Meanings</h2>
           {meanings.map((m, i) => (
             <div key={i} className="space-y-2">
-              <p className="text-sm text-muted-foreground">{m.partOfSpeech}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{m.partOfSpeech}</p>
               {m.definitions.map((d, j) => (
-                <p key={j} className="text-sm">- {d.definition}</p>
+                <p key={j} className="text-sm leading-relaxed">- {d.definition}</p>
               ))}
             </div>
           ))}
         </div>
       )}
 
-      {/* {user && (
-        <div className="text-center">
-          <Button variant={isFavorite ? "secondary" : "default"} onClick={toggleFavorite}>
-            {isFavorite ? "Remover dos favoritos" : "Salvar como favorito"}
-          </Button>
-        </div>  bceae5ad-6e4c-4c76-9a77-442a65b82b8e
-      )} */}
       {user && (
         <div className="text-center">
+          {/* [A5] Full-width no mobile */}
           <Button
             variant={isFavorite ? "secondary" : "default"}
             onClick={toggleFavorite}
             disabled={favLoading}
+            className="w-full sm:w-auto"
           >
             {isFavorite ? "Remover dos favoritos" : "Salvar como favorito"}
           </Button>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 
