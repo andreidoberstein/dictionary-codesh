@@ -6,6 +6,11 @@ export const Header = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
 
+  const handleSignOut = async () => {
+    await signOut();                 // já limpa e navega,
+    // navigate('/login', { replace: true }); // só use se não navegar no signOut
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="container mx-auto flex h-14 items-center justify-between px-4">
@@ -17,7 +22,7 @@ export const Header = () => {
             <Button variant="ghost" size="sm">Explorar</Button>
           </Link>
           {user ? (
-            <Button variant="outline" size="sm" onClick={signOut} aria-label="Sair">
+            <Button variant="outline" size="sm" onClick={handleSignOut} aria-label="Sair">
               Sair
             </Button>
           ) : (
