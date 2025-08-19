@@ -51,12 +51,9 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
         return;
       }
       try {
-
         const fav = await userFavorites(1, 10);
-        
         const hasWord =
           fav?.results?.some((item) => (item?.text ?? item?.word) === term) ?? false;
-
         if (active) setIsFavorite(hasWord);
       } catch {
         if (active) setIsFavorite(false);
