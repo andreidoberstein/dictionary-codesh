@@ -39,15 +39,16 @@ async function bootstrap() {
     logger.log('Swagger configurado');
 
     const PORT = Number(process.env.PORT) || 3000;
+    logger.log(`Tentando iniciar o servidor na porta ${PORT}...`);
     await app.listen(PORT, '0.0.0.0');
     logger.log(`🚀 HTTP ouvindo em 0.0.0.0:${PORT}`);
   } catch (error) {
-    logger.error('Erro ao iniciar a aplicação:', error);
+    logger.error('Erro ao iniciar a aplicação:', error.stack || error);
     throw error;
   }
 }
 
 bootstrap().catch((error) => {
-  Logger.error('Falha no bootstrap:', error);
+  Logger.error('Falha no bootstrap:', error.stack || error);
   process.exit(1);
 });

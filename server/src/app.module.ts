@@ -31,5 +31,6 @@ import { redisStore } from 'cache-manager-redis-yet';
     HealthController
   ],
   providers: [PrismaService],
+  exports: [PrismaService],
 })
 export class AppModule {}

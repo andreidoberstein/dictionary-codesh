@@ -1,7 +1,7 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger, Scope } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
-@Injectable()
+@Injectable({ scope: Scope.DEFAULT })
 export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
@@ -23,6 +23,7 @@ export class PrismaService
     try {
       await this.$connect();
       this.logger.log('Conexão com o banco de dados estabelecida');
+      // this.logger.log(`Número de conexões no pool: ${this.$getConnectionInfo().activeConnections}`);
     } catch (error) {
       this.logger.error('Erro ao conectar ao banco de dados:', error);
       throw error;
