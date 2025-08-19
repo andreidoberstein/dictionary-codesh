@@ -51,12 +51,10 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
         return;
       }
       try {
-
         const fav = await userFavorites(1, 10);
-        
+        // [A6] Tolerante ao formato (text | word)
         const hasWord =
           fav?.results?.some((item) => (item?.text ?? item?.word) === term) ?? false;
-
         if (active) setIsFavorite(hasWord);
       } catch {
         if (active) setIsFavorite(false);
@@ -134,6 +132,7 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
         <meta name="description" content={`Veja significados e fonética de ${term}. Salve como favorito.`} />
       </Helmet>
 
+      {/* [A1] Barra de navegação sticky no mobile */}
       <div className="sticky top-0 z-20 -mx-3 sm:mx-0 px-3 py-2 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between gap-2">
         <Button size="sm" onClick={goPrev} disabled={isFirst} aria-label="Anterior">
           ← Anterior
@@ -143,16 +142,19 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
         </Button>
       </div>
 
+      {/* [A2] Tipografia/padding responsivos */}
       <div className="bg-gradient-to-br from-purple-200 to-pink-200 dark:from-purple-800 dark:to-pink-800 rounded-lg p-4 sm:p-6 text-center">
         <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 break-words">{term}</h1>
         {phonetic && (
           <div className="flex flex-col items-center">
             <p className="text-base sm:text-lg">{phonetic}</p>
+            {/* [A3] Botão menor no mobile */}
             <Button className="mt-2" size="sm" onClick={playPhonetic}>▶ Ouvir</Button>
           </div>
         )}
       </div>
 
+      {/* [A4] Acessibilidade de estado */}
       {loading && (
         <p className="text-center text-muted-foreground" aria-live="polite">
           Carregando...
@@ -180,6 +182,7 @@ const WordDetail = ({ term, allWords = [], onSelectWord = () => {} }: WordDetail
 
       {user && (
         <div className="text-center">
+          {/* [A5] Full-width no mobile */}
           <Button
             variant={isFavorite ? "secondary" : "default"}
             onClick={toggleFavorite}
