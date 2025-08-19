@@ -7,34 +7,39 @@ import { ResponseTimeInterceptor } from './common/interceptors/response-time.int
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  try {
+    const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: [
-      'https://dictionary-codesh-oo8155lnd-andreivupts-projects.vercel.app'
-    ],
-    credentials: true,
-    methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-    allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept','Origin'],
-    optionsSuccessStatus: 204,
-  });
+    app.enableCors({
+      origin: true,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+      optionsSuccessStatus: 204,
+    });
 
-  app.useGlobalFilters(new HttpErrorFilter());
-  app.useGlobalInterceptors(new TransformResponseInterceptor());
-  app.useGlobalInterceptors(new ResponseTimeInterceptor());
+    app.useGlobalFilters(new HttpErrorFilter());
+    app.useGlobalInterceptors(new TransformResponseInterceptor());
+    app.useGlobalInterceptors(new ResponseTimeInterceptor());
 
-  const config = new DocumentBuilder()
-    .setTitle('Dictionary challenge')
-    .setDescription('API para gerenciamento de palavras, histórico e favoritos')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+    const config = new DocumentBuilder()
+      .setTitle('Dictionary challenge')
+      .setDescription('API para gerenciamento de palavras, histórico e favoritos')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
 
-  const PORT = Number(process.env.PORT) || 3000;
-  await app.listen(PORT, '0.0.0.0');
-  Logger.log(`🚀 HTTP ouvindo em 0.0.0.0:${PORT}`, 'Bootstrap');
+    const PORT = Number(process.env.PORT) || 3000;
+    await app.listen(PORT, '0.0.0.0');
+  } catch (error) {
+    throw error;
+  }
 }
-bootstrap();
+
+bootstrap().catch((error) => {
+  Logger.error('Falha no bootstrap:', error.stack || error);
+  process.exit(1);
+});
