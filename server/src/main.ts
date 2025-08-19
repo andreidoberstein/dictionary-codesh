@@ -7,35 +7,47 @@ import { ResponseTimeInterceptor } from './common/interceptors/response-time.int
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  // const app = await NestFactory.create(AppModule);
-  const app = await NestFactory.create(AppModule, { cors: false });
+  const logger = new Logger('Bootstrap');
+  logger.log('Iniciando a aplicação...');
 
-  // 1) CORS logo no início
-  const allowlist = [
-    'https://dictionary-codesh-oo8155lnd-andreivupts-projects.vercel.app',
-    'https://dictionary-codesh.vercel.app',
-  ];
+  try {
+    const app = await NestFactory.create(AppModule, { cors: false });
+    logger.log('Aplicação NestJS criada com sucesso');
 
-  app.enableCors({
-    origin: true
-  });  
-  
-  app.useGlobalFilters(new HttpErrorFilter());
-  app.useGlobalInterceptors(new TransformResponseInterceptor());
-  app.useGlobalInterceptors(new ResponseTimeInterceptor());
+    app.enableCors({
+      origin: true,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+      optionsSuccessStatus: 204,
+    });
+    logger.log('CORS configurado');
 
-  const config = new DocumentBuilder()
-    .setTitle('Dictionary challenge')
-    .setDescription('API para gerenciamento de palavras, histórico e favoritos')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+    app.useGlobalFilters(new HttpErrorFilter());
+    app.useGlobalInterceptors(new TransformResponseInterceptor());
+    app.useGlobalInterceptors(new ResponseTimeInterceptor());
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+    const config = new DocumentBuilder()
+      .setTitle('Dictionary challenge')
+      .setDescription('API para gerenciamento de palavras, histórico e favoritos')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
 
-  const PORT = Number(process.env.PORT) || 3000;
-  await app.listen(PORT, '0.0.0.0');
-  Logger.log(`🚀 HTTP ouvindo em 0.0.0.0:${PORT}`, 'Bootstrap');
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+    logger.log('Swagger configurado');
+
+    const PORT = Number(process.env.PORT) || 3000;
+    await app.listen(PORT, '0.0.0.0');
+    logger.log(`🚀 HTTP ouvindo em 0.0.0.0:${PORT}`);
+  } catch (error) {
+    logger.error('Erro ao iniciar a aplicação:', error);
+    throw error;
+  }
 }
-bootstrap();
+
+bootstrap().catch((error) => {
+  Logger.error('Falha no bootstrap:', error);
+  process.exit(1);
+});

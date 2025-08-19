@@ -22,6 +22,6 @@ EXPOSE 3000
 
 CMD sh -c '\
 for i in 1 2 3 4 5; do \
-  npx prisma migrate deploy && break || { echo "[migrate] falhou, retry em 5s"; sleep 5; }; \
+  npx prisma migrate deploy && break || { echo "[migrate] falhou, retry em 10s"; sleep 10; }; \
 done; \
 node dist/main.js'
