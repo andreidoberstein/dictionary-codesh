@@ -17,51 +17,8 @@ async function bootstrap() {
   ];
 
   app.enableCors({
-    origin: (origin, cb) => {
-      if (!origin) return cb(null, true); // curl/health
-      if (allowlist.includes(origin) || origin.endsWith('.vercel.app')) {
-        return cb(null, true);
-      }
-      return cb(new Error('Origin not allowed by CORS'), false);
-    },
-    credentials: true,
-    methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-    allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept','Origin'],
-    optionsSuccessStatus: 204,
-    preflightContinue: false, // Express encerra o OPTIONS
-    // origin: [
-    //   'https://dictionary-codesh-oo8155lnd-andreivupts-projects.vercel.app'
-    // ],
-    // credentials: true,
-    // methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-    // allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept','Origin'],
-    // optionsSuccessStatus: 204,
-  });
-
-  app.use((req, res, next) => {
-    if (req.method === 'OPTIONS') {
-      const origin = req.headers.origin as string | undefined;
-      if (origin && (allowlist.includes(origin) || origin.endsWith('.vercel.app'))) {
-        res.header('Access-Control-Allow-Origin', origin);
-        res.header('Vary', 'Origin');
-        res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-        res.header('Access-Control-Max-Age', '600');
-        return res.sendStatus(204);
-      }
-      // origem não permitida -> ainda assim responda p/ evitar 502
-      return res.status(204).end();
-    }
-    return next();
-  });
-
-  app.use((req, _res, next) => {
-    if (req.method === 'OPTIONS') {
-      Logger.log(`Preflight OPTIONS -> ${req.originalUrl}`, 'CORS');
-    }
-    next();
-  });
+    origin: true
+  });  
   
   app.useGlobalFilters(new HttpErrorFilter());
   app.useGlobalInterceptors(new TransformResponseInterceptor());
