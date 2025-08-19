@@ -20,7 +20,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (token) {
         try {
           const decoded = jwtDecode(token);
-
         if (decoded.exp * 1000 < Date.now()) {
           localStorage.removeItem("token");
           setUser(null);
@@ -78,8 +77,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
 
-  const signOut = async () => {
-    
+  const signOut: AuthContextType["signOut"] = async () => {
+    try {
+      console.log("Logout...")
+    } finally {
+      localStorage.removeItem("token");
+      setUser(null);
+      window.location.href = "/login";
+    }
   };
 
   return (
@@ -89,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = () => {
+export const useAuth = () => {          
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
