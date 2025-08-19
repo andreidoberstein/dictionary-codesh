@@ -7,12 +7,8 @@ import { ResponseTimeInterceptor } from './common/interceptors/response-time.int
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap');
-  logger.log('Iniciando a aplicação...');
-
   try {
-    const app = await NestFactory.create(AppModule, { cors: false });
-    logger.log('Aplicação NestJS criada com sucesso');
+    const app = await NestFactory.create(AppModule);
 
     app.enableCors({
       origin: true,
@@ -21,7 +17,6 @@ async function bootstrap() {
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
       optionsSuccessStatus: 204,
     });
-    logger.log('CORS configurado');
 
     app.useGlobalFilters(new HttpErrorFilter());
     app.useGlobalInterceptors(new TransformResponseInterceptor());
@@ -36,14 +31,10 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
-    logger.log('Swagger configurado');
 
     const PORT = Number(process.env.PORT) || 3000;
-    logger.log(`Tentando iniciar o servidor na porta ${PORT}...`);
     await app.listen(PORT, '0.0.0.0');
-    logger.log(`🚀 HTTP ouvindo em 0.0.0.0:${PORT}`);
   } catch (error) {
-    logger.error('Erro ao iniciar a aplicação:', error.stack || error);
     throw error;
   }
 }

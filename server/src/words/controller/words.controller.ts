@@ -15,7 +15,7 @@ export class WordsController {
   @ApiResponse({ status: 200, description: 'Importação realizada com sucesso.' })
   @ApiResponse({ status: 400, description: 'Erro ao importar palavras.' })
   async importFromGitHub() {
-    // await this.wordsService.importFromGitHub();
-    // return { message: 'Importação concluída com sucesso.' };
+    await this.wordsService.importFromGitHub();
+    return { message: 'Importação concluída com sucesso.' };
   }
 }
